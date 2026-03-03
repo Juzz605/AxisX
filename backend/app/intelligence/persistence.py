@@ -11,6 +11,18 @@ from app.intelligence.schemas import MemoryRecord
 logger = logging.getLogger(__name__)
 
 
+def _coerce_json_payload(value):
+    """Normalize DB JSON/JSONB payload to python dict."""
+
+    if isinstance(value, (dict, list)):
+        return value
+    if value is None:
+        return {}
+    if isinstance(value, (str, bytes, bytearray)):
+        return json.loads(value)
+    return value
+
+
 class MemoryStore(Protocol):
     """Persistence protocol for memory records."""
 
@@ -125,8 +137,8 @@ class SQLMemoryStore:
                     timestamp=row[0] if isinstance(row[0], datetime) else datetime.fromisoformat(str(row[0])),
                     profile_name=row[1],
                     strategy=row[2],
-                    pre_traits=json.loads(row[3]),
-                    post_traits=json.loads(row[4]),
+                    pre_traits=_coerce_json_payload(row[3]),
+                    post_traits=_coerce_json_payload(row[4]),
                     strategy_index=float(row[5]),
                     outcome_success=bool(row[6]),
                     liquidity_delta=float(row[7]),
