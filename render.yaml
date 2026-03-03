@@ -16,8 +16,9 @@ services:
       - key: CORS_ORIGINS
         value: https://axisx-frontend.onrender.com,http://localhost:5173
 
-  - type: static
+  - type: web
     name: axisx-frontend
+    runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
