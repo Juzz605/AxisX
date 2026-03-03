@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: axisx-backend
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: DATABASE_URL
+        fromDatabase:
+          name: axisx-postgres
+          property: connectionString
+      - key: CORS_ORIGINS
+        value: https://axisx-frontend.onrender.com,http://localhost:5173
+
+  - type: static
+    name: axisx-frontend
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    pullRequestPreviewsEnabled: false
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://axisx-backend.onrender.com/api/v1
+
+databases:
+  - name: axisx-postgres
+    plan: free
+    databaseName: axisx
+    user: axisx
