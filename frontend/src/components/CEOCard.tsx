@@ -5,15 +5,42 @@ import type { CEODecision } from '../types/types';
 interface CEOCardProps {
   title: string;
   decision: CEODecision | null;
+  managedCapital: number;
+  cashReserve: number;
+  pnlPercent: number;
 }
 
-export default function CEOCard({ title, decision }: CEOCardProps) {
+function formatMoney(value: number): string {
+  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(2)}B`;
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(2)}M`;
+  return `$${value.toLocaleString()}`;
+}
+
+export default function CEOCard({ title, decision, managedCapital, cashReserve, pnlPercent }: CEOCardProps) {
   return (
     <section className="rounded-xl border border-border bg-panel p-5 shadow-glow">
       <header className="mb-4 flex items-center justify-between">
         <h3 className="text-base font-semibold text-textMain">{title}</h3>
         {decision ? <StrategyBadge strategy={decision.strategy} /> : null}
       </header>
+
+      <div className="mb-4 grid grid-cols-3 gap-3 text-sm">
+        <div className="rounded-md border border-border bg-panel2 p-3">
+          <p className="text-xs text-textSub">Managed Capital</p>
+          <p className="mt-1 font-semibold">{formatMoney(managedCapital)}</p>
+        </div>
+        <div className="rounded-md border border-border bg-panel2 p-3">
+          <p className="text-xs text-textSub">Cash Reserve</p>
+          <p className="mt-1 font-semibold">{formatMoney(cashReserve)}</p>
+        </div>
+        <div className="rounded-md border border-border bg-panel2 p-3">
+          <p className="text-xs text-textSub">P&L</p>
+          <p className={`mt-1 font-semibold ${pnlPercent >= 0 ? 'text-success' : 'text-danger'}`}>
+            {pnlPercent >= 0 ? '+' : ''}
+            {pnlPercent.toFixed(2)}%
+          </p>
+        </div>
+      </div>
 
       {!decision ? (
         <p className="text-sm text-textSub">No simulation data available.</p>

@@ -147,3 +147,21 @@ export interface MarketCandle {
   volume: number;
   regime: MarketRegime;
 }
+
+export interface MarketInstrumentSnapshot {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  change_percent: number;
+  currency: 'INR' | 'USD';
+}
+
+export interface MarketLearningSignal {
+  trend: 'Bullish' | 'Bearish' | 'Sideways';
+  predicted_price: number;
+  confidence: number;
+  volatility: number;
+  fast_ema: number;
+  slow_ema: number;
+}

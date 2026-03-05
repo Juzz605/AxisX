@@ -355,12 +355,12 @@ class AxisXIntelligenceOrchestrator:
         decision_engine = ExecutiveDecisionEngine(seed=seed)
 
         agent_logs: list[str] = [
-            f"[Crisis Intelligence Agent] Q{quarter}: scanning synthetic market regime for {archetype}.",
+            f"[Crisis Monitoring Agent] Q{quarter}: scanning synthetic market regime for {archetype}.",
         ]
 
         crisis = crisis_agent.generate_crisis_report()
         agent_logs.append(
-            "[Crisis Intelligence Agent] "
+            "[Crisis Monitoring Agent] "
             f"demand_drop={crisis.demand_drop:.3f}, interest_spike={crisis.interest_rate_spike:.3f}, "
             f"liquidity_risk={crisis.liquidity_risk:.3f}, confidence={crisis.consumer_confidence:.3f}."
         )
@@ -446,19 +446,19 @@ class AxisXIntelligenceOrchestrator:
             f"strategy={strategy}, index={strategy_index:.4f}, growth={growth_score:.4f}, stability={stability_score:.4f}."
         )
         agent_logs.append(
-            "[Market Sentiment Agent] "
+            "[Market Intelligence Agent] "
             f"sentiment={support_signals.market_sentiment.sentiment_score:.3f}, "
             f"volatility={support_signals.market_sentiment.volatility_pressure:.3f}, "
             f"adj={support_signals.market_sentiment.adjustment:.3f}."
         )
         agent_logs.append(
-            "[Operations Efficiency Agent] "
+            "[Innovation Strategy Agent] "
             f"efficiency={support_signals.operations.efficiency_score:.3f}, "
             f"opex={support_signals.operations.opex_pressure:.3f}, "
             f"adj={support_signals.operations.adjustment:.3f}."
         )
         agent_logs.append(
-            "[Treasury Liquidity Agent] "
+            "[Finance & Treasury Agent] "
             f"health={support_signals.treasury.liquidity_health:.3f}, "
             f"runway_pressure={support_signals.treasury.runway_pressure:.3f}, "
             f"adj={support_signals.treasury.adjustment:.3f}, "

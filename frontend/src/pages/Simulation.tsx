@@ -1,7 +1,7 @@
 import CEOCard from '../components/CEOCard';
 import AgentCommandDeck from '../components/agents/AgentCommandDeck';
 import MarketDashboard from '../components/market/MarketDashboard';
-import type { CEODecision, CrisisReport, MarketCandle } from '../types/types';
+import type { CEODecision, CrisisReport, MarketCandle, MarketInstrumentSnapshot, MarketLearningSignal } from '../types/types';
 
 interface SimulationProps {
   visionaryDecision: CEODecision | null;
@@ -13,6 +13,14 @@ interface SimulationProps {
   onStartLive: () => Promise<void>;
   onStopLive: () => Promise<void>;
   marketCandles: MarketCandle[];
+  marketInstruments: MarketInstrumentSnapshot[];
+  marketLearning: MarketLearningSignal | null;
+  visionaryCapital: number;
+  conservativeCapital: number;
+  visionaryPnlPercent: number;
+  conservativePnlPercent: number;
+  visionaryCashReserve: number;
+  conservativeCashReserve: number;
 }
 
 export default function Simulation({
@@ -24,7 +32,15 @@ export default function Simulation({
   agentLogs,
   onStartLive,
   onStopLive,
-  marketCandles
+  marketCandles,
+  marketInstruments,
+  marketLearning,
+  visionaryCapital,
+  conservativeCapital,
+  visionaryPnlPercent,
+  conservativePnlPercent,
+  visionaryCashReserve,
+  conservativeCashReserve
 }: SimulationProps) {
   return (
     <div className="space-y-5">
@@ -55,8 +71,20 @@ export default function Simulation({
       </section>
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <CEOCard title="Visionary CEO Panel" decision={visionaryDecision} />
-        <CEOCard title="Conservative CEO Panel" decision={conservativeDecision} />
+        <CEOCard
+          title="Visionary CEO Panel"
+          decision={visionaryDecision}
+          managedCapital={visionaryCapital}
+          pnlPercent={visionaryPnlPercent}
+          cashReserve={visionaryCashReserve}
+        />
+        <CEOCard
+          title="Conservative CEO Panel"
+          decision={conservativeDecision}
+          managedCapital={conservativeCapital}
+          pnlPercent={conservativePnlPercent}
+          cashReserve={conservativeCashReserve}
+        />
       </div>
 
       <AgentCommandDeck
@@ -67,7 +95,7 @@ export default function Simulation({
         liveRunning={liveRunning}
       />
 
-      <MarketDashboard candles={marketCandles} />
+      <MarketDashboard candles={marketCandles} instruments={marketInstruments} learning={marketLearning} />
 
       <section className="rounded-xl border border-border bg-panel p-5 shadow-glow">
         <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-textSub">Agent Log Stream</h3>

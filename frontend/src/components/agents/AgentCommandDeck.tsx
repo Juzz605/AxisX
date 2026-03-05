@@ -41,7 +41,7 @@ export default function AgentCommandDeck({
 
       <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <AgentCard
-          name="Crisis Intelligence Agent"
+          name="Crisis Monitoring Agent"
           role="Macro shock synthesis"
           accent="amber"
           signal={crisis?.severity_index}
@@ -77,7 +77,7 @@ export default function AgentCommandDeck({
         />
 
         <AgentCard
-          name="Market Sentiment Agent"
+          name="Market Intelligence Agent"
           role="Momentum and volatility"
           accent="cyan"
           signal={support?.market_sentiment.adjustment}
@@ -95,14 +95,14 @@ export default function AgentCommandDeck({
         />
 
         <AgentCard
-          name="Operations Efficiency Agent"
-          role="Execution and OPEX"
+          name="Innovation Strategy Agent"
+          role="Transformation and execution"
           accent="emerald"
           signal={support?.operations.adjustment}
           activity={
             support
-              ? 'Analyzing burn-efficiency and execution pressure to rebalance expansion versus protection.'
-              : 'Idle. Awaiting financial telemetry to score operational resilience.'
+              ? 'Analyzing innovation-pressure tradeoffs to rebalance transformation speed versus operating risk.'
+              : 'Idle. Awaiting innovation and execution telemetry.'
           }
           primaryMetrics={[
             { label: 'Efficiency', value: pct(support?.operations.efficiency_score) },
@@ -113,7 +113,7 @@ export default function AgentCommandDeck({
         />
 
         <AgentCard
-          name="Treasury Liquidity Agent"
+          name="Finance & Treasury Agent"
           role="Runway and refinance"
           accent="slate"
           signal={support?.treasury.adjustment}

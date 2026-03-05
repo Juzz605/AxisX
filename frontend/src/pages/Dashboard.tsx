@@ -64,11 +64,11 @@ export default function Dashboard({
         <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-textSub">Agent Topology</h3>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {[
-            'Crisis Intelligence Agent',
+            'Crisis Monitoring Agent',
             'CEO Archetype Agent',
-            'Market Sentiment Agent',
-            'Operations Efficiency Agent',
-            'Treasury Liquidity Agent'
+            'Market Intelligence Agent',
+            'Innovation Strategy Agent',
+            'Finance & Treasury Agent'
           ].map((agent) => (
             <div key={agent} className="rounded-md border border-border bg-panel2 px-3 py-2.5">
               <p className="text-xs font-medium text-textMain">{agent}</p>
