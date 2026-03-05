@@ -3,12 +3,15 @@
 from functools import lru_cache
 
 import psycopg
+from pymongo import MongoClient
 
 from app.core.config import CONFIG
 from app.intelligence.memory_engine import ExecutiveMemoryEngine
 from app.intelligence.orchestrator import AxisXIntelligenceOrchestrator
 from app.intelligence.persistence import SQLMemoryStore
-from app.intelligence.timeline_store import TimelineStore
+from app.intelligence.persistence_mongo import MongoMemoryStore
+from app.intelligence.timeline_store import TimelineStore, TimelineStoreProtocol
+from app.intelligence.timeline_store_mongo import MongoTimelineStore
 from app.intelligence.timeline_store_postgres import PostgresTimelineStore
 from app.services.live_simulation import LiveSimulationManager
 
@@ -20,8 +23,20 @@ def _postgres_connection_factory():
 
 
 @lru_cache(maxsize=1)
+def _get_mongo_client() -> MongoClient:
+    if not CONFIG.mongodb_uri:
+        raise RuntimeError("MONGODB_URI is not configured")
+    return MongoClient(CONFIG.mongodb_uri)
+
+
+@lru_cache(maxsize=1)
 def get_memory_engine() -> ExecutiveMemoryEngine:
     """Return singleton memory engine to retain adaptation history."""
+
+    if CONFIG.mongodb_uri:
+        client = _get_mongo_client()
+        db = client[CONFIG.mongodb_db_name]
+        return ExecutiveMemoryEngine(store=MongoMemoryStore(collection=db["executive_memory"]))
 
     if CONFIG.database_url:
         return ExecutiveMemoryEngine(store=SQLMemoryStore(connection_factory=_postgres_connection_factory))
@@ -29,8 +44,13 @@ def get_memory_engine() -> ExecutiveMemoryEngine:
 
 
 @lru_cache(maxsize=1)
-def get_timeline_store() -> TimelineStore:
+def get_timeline_store() -> TimelineStoreProtocol:
     """Return singleton timeline store using configured database path."""
+
+    if CONFIG.mongodb_uri:
+        client = _get_mongo_client()
+        db = client[CONFIG.mongodb_db_name]
+        return MongoTimelineStore(collection=db["simulation_timeline"])
 
     if CONFIG.database_url:
         return PostgresTimelineStore(connection_factory=_postgres_connection_factory)

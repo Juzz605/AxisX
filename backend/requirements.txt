@@ -4,3 +4,4 @@ numpy==2.2.2
 pydantic==2.10.6
 pydantic-settings==2.7.1
 psycopg[binary]==3.2.6
+pymongo[srv]==4.10.1

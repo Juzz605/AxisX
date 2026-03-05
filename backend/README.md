@@ -49,10 +49,11 @@ curl -X POST http://localhost:8000/api/v1/simulate \
   }'
 ```
 
-## PostgreSQL Memory Persistence
+## Persistence (MongoDB First)
 
-- If `DATABASE_URL` is set, backend auto-uses PostgreSQL for memory + timeline.
-- If `DATABASE_URL` is not set, backend falls back to local SQLite (`AXISX_DB_PATH`) for timeline and in-memory store for memory.
+- If `MONGODB_URI` is set, backend uses MongoDB for memory + timeline.
+- If `MONGODB_URI` is not set and `DATABASE_URL` is set, backend uses PostgreSQL.
+- If neither is set, backend falls back to local SQLite (`AXISX_DB_PATH`) for timeline and in-memory store for memory.
 
 ## Timeline Simulation
 
@@ -67,8 +68,8 @@ export AXISX_DB_PATH=/absolute/path/axisx.db
 - Root-level `render.yaml` provisions:
 1. `axisx-backend` (Python web service)
 2. `axisx-frontend` (static site)
-3. `axisx-postgres` (managed Postgres)
 
 - Ensure these values are updated after first deploy:
 1. Backend CORS origins to include your actual frontend URL.
 2. Frontend `VITE_API_BASE_URL` to your actual backend URL.
+3. Backend `MONGODB_URI` to your MongoDB Atlas connection string.

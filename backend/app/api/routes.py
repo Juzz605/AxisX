@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 
+from app.core.config import CONFIG
 from app.intelligence.memory_engine import ExecutiveMemoryEngine
 from app.intelligence.orchestrator import AxisXIntelligenceOrchestrator
 from app.intelligence.schemas import (
@@ -13,7 +14,7 @@ from app.intelligence.schemas import (
     TimelineSimulationRequest,
     TimelineSimulationResponse,
 )
-from app.intelligence.timeline_store import TimelineStore
+from app.intelligence.timeline_store import TimelineStoreProtocol
 from app.services.dependencies import (
     get_live_simulation_manager,
     get_memory_engine,
@@ -29,7 +30,8 @@ router = APIRouter()
 def health() -> dict[str, str]:
     """Service health probe."""
 
-    return {"status": "ok", "service": "axisx-intelligence-core"}
+    storage = "mongodb" if CONFIG.mongodb_uri else ("postgresql" if CONFIG.database_url else "sqlite-memory")
+    return {"status": "ok", "service": "axisx-intelligence-core", "storage": storage}
 
 
 @router.post("/simulate", response_model=SimulationResponse)
@@ -136,7 +138,7 @@ async def stream_live_simulation(
 
 
 @router.get("/results", response_model=list[SimulationResponse])
-def results(timeline_store: TimelineStore = Depends(get_timeline_store)) -> list[SimulationResponse]:
+def results(timeline_store: TimelineStoreProtocol = Depends(get_timeline_store)) -> list[SimulationResponse]:
     """Return latest simulated quarter results grouped as simple response records."""
 
     rows = timeline_store.list_recent(limit=100)
@@ -164,7 +166,7 @@ def history(memory_engine: ExecutiveMemoryEngine = Depends(get_memory_engine)) -
 @router.post("/reset")
 def reset(
     memory_engine: ExecutiveMemoryEngine = Depends(get_memory_engine),
-    timeline_store: TimelineStore = Depends(get_timeline_store),
+    timeline_store: TimelineStoreProtocol = Depends(get_timeline_store),
 ) -> dict[str, str]:
     """Reset all simulation memory and timeline records."""
 

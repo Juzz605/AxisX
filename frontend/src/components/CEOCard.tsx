@@ -46,6 +46,33 @@ export default function CEOCard({ title, decision }: CEOCardProps) {
             <TraitBar label="Cost Sensitivity" value={decision.updated_traits.cost_sensitivity} />
             <TraitBar label="Long Term Focus" value={decision.updated_traits.long_term_focus} />
           </div>
+
+          {decision.support_signals ? (
+            <div className="space-y-3">
+              <p className="text-xs uppercase tracking-wide text-textSub">Support Agent Signals</p>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="rounded-md border border-border bg-panel2 p-3">
+                  <p className="text-xs text-textSub">Market Adj.</p>
+                  <p className="mt-1 font-semibold">{decision.support_signals.market_sentiment.adjustment.toFixed(4)}</p>
+                </div>
+                <div className="rounded-md border border-border bg-panel2 p-3">
+                  <p className="text-xs text-textSub">Operations Adj.</p>
+                  <p className="mt-1 font-semibold">{decision.support_signals.operations.adjustment.toFixed(4)}</p>
+                </div>
+                <div className="rounded-md border border-border bg-panel2 p-3">
+                  <p className="text-xs text-textSub">Treasury Adj.</p>
+                  <p className="mt-1 font-semibold">{decision.support_signals.treasury.adjustment.toFixed(4)}</p>
+                </div>
+                <div className="rounded-md border border-border bg-panel2 p-3">
+                  <p className="text-xs text-textSub">Aggregate Adj.</p>
+                  <p className="mt-1 font-semibold">{decision.support_signals.aggregate_adjustment.toFixed(4)}</p>
+                </div>
+              </div>
+              <p className="text-xs uppercase tracking-wide text-textSub">
+                Dominant Driver: <span className="text-textMain">{decision.support_signals.dominant_driver}</span>
+              </p>
+            </div>
+          ) : null}
         </div>
       )}
     </section>

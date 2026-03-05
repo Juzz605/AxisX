@@ -43,6 +43,16 @@ class StrategyConfig:
 
 
 @dataclass(frozen=True)
+class SupportAgentConfig:
+    """Weights for additional advisory agents and strategy adjustment bounds."""
+
+    market_signal_weight: float = 0.40
+    operations_signal_weight: float = 0.30
+    treasury_signal_weight: float = 0.30
+    max_strategy_adjustment: float = 0.12
+
+
+@dataclass(frozen=True)
 class SeverityConfig:
     """Weights used to calculate severity index from crisis factors."""
 
@@ -58,11 +68,14 @@ class EngineConfig:
 
     crisis: CrisisDistributionConfig = CrisisDistributionConfig()
     strategy: StrategyConfig = StrategyConfig()
+    support_agents: SupportAgentConfig = SupportAgentConfig()
     severity: SeverityConfig = SeverityConfig()
     default_quarters: int = 8
     max_quarters: int = 40
     db_path: str = os.getenv("AXISX_DB_PATH", "./axisx.db")
     database_url: str = os.getenv("DATABASE_URL", "")
+    mongodb_uri: str = os.getenv("MONGODB_URI", "")
+    mongodb_db_name: str = os.getenv("MONGODB_DB_NAME", "axisx")
     cors_origins_raw: str = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
 
 

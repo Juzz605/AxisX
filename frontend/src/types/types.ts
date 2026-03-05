@@ -29,6 +29,35 @@ export interface Explainability {
   severity_context: number;
 }
 
+export interface MarketSentimentSignal {
+  sentiment_score: number;
+  momentum_signal: number;
+  volatility_pressure: number;
+  adjustment: number;
+}
+
+export interface OperationsSignal {
+  efficiency_score: number;
+  opex_pressure: number;
+  execution_risk: number;
+  adjustment: number;
+}
+
+export interface TreasurySignal {
+  liquidity_health: number;
+  runway_pressure: number;
+  refinancing_risk: number;
+  adjustment: number;
+}
+
+export interface SupportAgentSignals {
+  market_sentiment: MarketSentimentSignal;
+  operations: OperationsSignal;
+  treasury: TreasurySignal;
+  aggregate_adjustment: number;
+  dominant_driver: string;
+}
+
 export interface CEODecision {
   strategy: 'Aggressive Expansion' | 'Balanced Adjustment' | 'Defensive Cost Control';
   risk_level: number;
@@ -37,6 +66,7 @@ export interface CEODecision {
   strategy_index: number;
   updated_traits: CEOProfile;
   explainability: Explainability;
+  support_signals?: SupportAgentSignals;
 }
 
 export interface SimulationResponse {

@@ -9,10 +9,10 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
-      - key: DATABASE_URL
-        fromDatabase:
-          name: axisx-postgres
-          property: connectionString
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: axisx
       - key: CORS_ORIGINS
         value: https://axisx-frontend.onrender.com,http://localhost:5173
 
@@ -26,9 +26,3 @@ services:
     envVars:
       - key: VITE_API_BASE_URL
         value: https://axisx-backend.onrender.com/api/v1
-
-databases:
-  - name: axisx-postgres
-    plan: free
-    databaseName: axisx
-    user: axisx

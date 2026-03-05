@@ -5,6 +5,7 @@ import logging
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Protocol
 
 from app.intelligence.schemas import CEODecision, CrisisReport, FinancialState
 
@@ -22,6 +23,30 @@ class TimelineQuarterRow:
     decision: CEODecision
     financial_state: FinancialState
     created_at: str
+
+
+class TimelineStoreProtocol(Protocol):
+    """Persistence protocol for quarter timeline records."""
+
+    def save_quarter(
+        self,
+        simulation_id: str,
+        quarter: int,
+        archetype: str,
+        crisis: CrisisReport,
+        decision: CEODecision,
+        financial_state: FinancialState,
+    ) -> None:
+        """Persist one quarter record."""
+
+    def list_by_simulation(self, simulation_id: str) -> list[TimelineQuarterRow]:
+        """Return timeline rows by simulation id."""
+
+    def list_recent(self, limit: int = 100) -> list[TimelineQuarterRow]:
+        """Return most recent timeline rows."""
+
+    def clear(self) -> None:
+        """Delete all timeline rows."""
 
 
 class TimelineStore:

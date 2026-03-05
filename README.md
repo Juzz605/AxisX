@@ -2,15 +2,15 @@
 
 Autonomous Multi-Archetype Executive Intelligence Engine.
 
-## Quick Deploy (Render + Postgres)
+## Quick Deploy (Render + MongoDB)
 
 1. Push this repo to GitHub.
 2. In Render, create a new **Blueprint** and select this repo.
 3. Render will read `render.yaml` and create:
    - `axisx-backend` (web)
    - `axisx-frontend` (static)
-   - `axisx-postgres` (database)
 4. After first deploy, update env vars:
+   - Backend `MONGODB_URI`: MongoDB Atlas URI
    - Backend `CORS_ORIGINS`: include frontend domain
    - Frontend `VITE_API_BASE_URL`: backend domain + `/api/v1`
 5. Open frontend URL and start live simulation.
