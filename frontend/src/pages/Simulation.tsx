@@ -53,7 +53,7 @@ export default function Simulation({
               disabled={liveRunning}
               className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
-              Start Live Market
+              Start Live Quarters
             </button>
             <button
               onClick={() => void onStopLive()}
@@ -64,7 +64,7 @@ export default function Simulation({
             </button>
           </div>
         </div>
-        <p className="mt-2 text-sm text-textSub">Parallel executive response comparison under current crisis dynamics.</p>
+        <p className="mt-2 text-sm text-textSub">Parallel CEO response comparison under product-economy disruption dynamics.</p>
         <p className="mt-2 text-xs uppercase tracking-[0.14em] text-textSub">
           Status: {liveRunning ? 'streaming synthetic market' : 'idle'}
         </p>

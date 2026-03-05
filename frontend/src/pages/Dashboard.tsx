@@ -1,10 +1,10 @@
 import MetricCard from '../components/MetricCard';
 import SimulationControls from '../components/SimulationControls';
-import type { Archetype, FinancialState } from '../types/types';
+import type { Archetype, CompanyState } from '../types/types';
 
 interface DashboardProps {
   selectedArchetype: Archetype;
-  financialState: FinancialState;
+  companyState: CompanyState;
   loading: boolean;
   onArchetypeChange: (archetype: Archetype) => void;
   onSimulate: () => Promise<void>;
@@ -13,7 +13,7 @@ interface DashboardProps {
 
 export default function Dashboard({
   selectedArchetype,
-  financialState,
+  companyState,
   loading,
   onArchetypeChange,
   onSimulate,
@@ -51,12 +51,12 @@ export default function Dashboard({
       />
 
       <section className="rounded-xl border border-border bg-panel p-5 shadow-glow">
-        <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-textSub">Current Financial State</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-textSub">Current Company State</h3>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard label="Revenue" value={`$${financialState.revenue.toLocaleString()}`} />
-          <MetricCard label="Cash" value={`$${financialState.cash.toLocaleString()}`} />
-          <MetricCard label="Burn Rate" value={`$${financialState.burn_rate.toLocaleString()}`} />
-          <MetricCard label="Liquidity Months" value={financialState.liquidity_months.toFixed(1)} />
+          <MetricCard label="Product Demand" value={`${Math.round(companyState.product_demand * 100)}%`} />
+          <MetricCard label="Production Cost" value={`${Math.round(companyState.production_cost * 100)}%`} />
+          <MetricCard label="Customer Sentiment" value={`${Math.round(companyState.customer_sentiment * 100)}%`} />
+          <MetricCard label="Cash Reserves" value={`${Math.round(companyState.cash_reserves * 100)}%`} />
         </div>
       </section>
 

@@ -1,10 +1,17 @@
 export type Archetype = 'VisionaryInnovator' | 'ConservativeStabilizer';
 
 export interface CrisisReport {
-  demand_drop: number;
-  interest_rate_spike: number;
-  liquidity_risk: number;
-  consumer_confidence: number;
+  disruption_event:
+    | 'supply_chain_disruption'
+    | 'sudden_demand_drop'
+    | 'competitor_launching_cheaper_product'
+    | 'economic_recession'
+    | 'manufacturing_cost_spike';
+  supply_chain_disruption: number;
+  demand_drop_intensity: number;
+  competitor_price_pressure: number;
+  recession_pressure: number;
+  manufacturing_cost_spike: number;
   severity_index: number;
 }
 
@@ -17,12 +24,17 @@ export interface CEOProfile {
   long_term_focus: number;
 }
 
-export interface FinancialState {
-  revenue: number;
-  cash: number;
-  burn_rate: number;
-  liquidity_months: number;
+export interface CompanyState {
+  product_demand: number;
+  production_cost: number;
+  supply_chain_risk: number;
+  competitor_pressure: number;
+  marketing_effectiveness: number;
+  customer_sentiment: number;
+  cash_reserves: number;
 }
+
+export type FinancialState = CompanyState;
 
 export interface Explainability {
   dominant_factors: string[];
@@ -59,11 +71,25 @@ export interface SupportAgentSignals {
 }
 
 export interface CEODecision {
-  strategy: 'Aggressive Expansion' | 'Balanced Adjustment' | 'Defensive Cost Control';
+  strategy:
+    | 'increase_marketing'
+    | 'cut_production'
+    | 'invest_in_r_and_d'
+    | 'adjust_price'
+    | 'hire_or_layoff_staff'
+    | 'enter_new_market';
   risk_level: number;
   growth_score: number;
   stability_score: number;
   strategy_index: number;
+  quarter_metrics: {
+    revenue: number;
+    profit_margin: number;
+    market_share: number;
+    customer_growth: number;
+    brand_strength: number;
+    company_cash_balance: number;
+  };
   updated_traits: CEOProfile;
   explainability: Explainability;
   support_signals?: SupportAgentSignals;
@@ -76,7 +102,7 @@ export interface SimulationResponse {
 
 export interface SimulationRequest {
   archetype: Archetype;
-  financial_state: FinancialState;
+  company_state: CompanyState;
   seed?: number;
   outcome_success?: boolean;
   liquidity_delta?: number;
@@ -97,8 +123,10 @@ export interface ResultPoint {
   timestamp: string;
   archetype: Archetype;
   strategy_index: number;
-  liquidity_months: number;
-  burn_rate: number;
+  cash_reserves: number;
+  production_cost: number;
+  product_demand: number;
+  market_share: number;
   traits: CEOProfile;
 }
 
@@ -109,7 +137,7 @@ export interface ApiError {
 
 export interface LiveSimulationStartRequest {
   archetype: Archetype;
-  financial_state: FinancialState;
+  company_state: CompanyState;
   tick_seconds?: number;
   max_quarters?: number;
   seed?: number;
@@ -129,6 +157,7 @@ export interface LiveTickEvent {
   quarter: number;
   crisis?: CrisisReport;
   decision?: CEODecision;
+  company_state?: CompanyState;
   financial_state?: FinancialState;
   agent_logs?: string[];
   timestamp: string;

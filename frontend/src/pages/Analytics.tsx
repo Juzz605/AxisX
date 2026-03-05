@@ -27,8 +27,10 @@ function ChartCard({ title, children }: { title: string; children: ReactNode }) 
 export default function Analytics({ points }: AnalyticsProps) {
   const data = points.map((point, idx) => ({
     tick: `T${idx + 1}`,
-    liquidity: Number(point.liquidity_months.toFixed(3)),
-    burnRate: Number(point.burn_rate.toFixed(3)),
+    cashReserves: Number(point.cash_reserves.toFixed(3)),
+    productionCost: Number(point.production_cost.toFixed(3)),
+    demand: Number(point.product_demand.toFixed(3)),
+    marketShare: Number(point.market_share.toFixed(3)),
     strategyIndex: Number(point.strategy_index.toFixed(3)),
     riskTolerance: Number(point.traits.risk_tolerance.toFixed(3)),
     liquidityPriority: Number(point.traits.liquidity_priority.toFixed(3)),
@@ -43,7 +45,7 @@ export default function Analytics({ points }: AnalyticsProps) {
       </section>
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <ChartCard title="Liquidity Over Time">
+        <ChartCard title="Cash Reserves Over Time">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
               <CartesianGrid stroke="rgba(148,163,184,0.15)" />
@@ -51,12 +53,12 @@ export default function Analytics({ points }: AnalyticsProps) {
               <YAxis stroke="#94A3B8" />
               <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #1F2937' }} />
               <Legend />
-              <Line type="monotone" dataKey="liquidity" stroke="#3B82F6" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="cashReserves" stroke="#3B82F6" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Burn Rate Over Time">
+        <ChartCard title="Production Cost Over Time">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={data}>
               <CartesianGrid stroke="rgba(148,163,184,0.15)" />
@@ -64,7 +66,7 @@ export default function Analytics({ points }: AnalyticsProps) {
               <YAxis stroke="#94A3B8" />
               <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #1F2937' }} />
               <Legend />
-              <Line type="monotone" dataKey="burnRate" stroke="#64748B" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="productionCost" stroke="#64748B" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -93,6 +95,20 @@ export default function Analytics({ points }: AnalyticsProps) {
               <Line type="monotone" dataKey="riskTolerance" stroke="#2563EB" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="liquidityPriority" stroke="#475569" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="innovationBias" stroke="#0EA5E9" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title="Demand & Market Share Evolution">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data}>
+              <CartesianGrid stroke="rgba(148,163,184,0.15)" />
+              <XAxis dataKey="tick" stroke="#94A3B8" />
+              <YAxis stroke="#94A3B8" domain={[0, 1]} />
+              <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #1F2937' }} />
+              <Legend />
+              <Line type="monotone" dataKey="demand" stroke="#0EA5E9" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="marketShare" stroke="#22C55E" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>

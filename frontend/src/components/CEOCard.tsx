@@ -56,12 +56,20 @@ export default function CEOCard({ title, decision, managedCapital, cashReserve, 
               <p className="mt-1 font-semibold">{decision.risk_level.toFixed(4)}</p>
             </div>
             <div className="rounded-md border border-border bg-panel2 p-3">
-              <p className="text-xs text-textSub">Growth Score</p>
-              <p className="mt-1 font-semibold">{decision.growth_score.toFixed(4)}</p>
+              <p className="text-xs text-textSub">Revenue</p>
+              <p className="mt-1 font-semibold">${decision.quarter_metrics.revenue.toLocaleString()}</p>
             </div>
             <div className="rounded-md border border-border bg-panel2 p-3">
-              <p className="text-xs text-textSub">Stability Score</p>
-              <p className="mt-1 font-semibold">{decision.stability_score.toFixed(4)}</p>
+              <p className="text-xs text-textSub">Profit Margin</p>
+              <p className="mt-1 font-semibold">{(decision.quarter_metrics.profit_margin * 100).toFixed(2)}%</p>
+            </div>
+            <div className="rounded-md border border-border bg-panel2 p-3">
+              <p className="text-xs text-textSub">Market Share</p>
+              <p className="mt-1 font-semibold">{(decision.quarter_metrics.market_share * 100).toFixed(2)}%</p>
+            </div>
+            <div className="rounded-md border border-border bg-panel2 p-3">
+              <p className="text-xs text-textSub">Brand Strength</p>
+              <p className="mt-1 font-semibold">{(decision.quarter_metrics.brand_strength * 100).toFixed(2)}%</p>
             </div>
           </div>
 

@@ -35,7 +35,7 @@ export default function AgentCommandDeck({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-textSub">AI Agent Command Deck</h3>
         <span className="rounded-md border border-border bg-panel2 px-2.5 py-1 text-[11px] uppercase tracking-[0.12em] text-textSub">
-          {liveRunning ? 'Live Stream Active' : 'Awaiting Market Trigger'}
+          {liveRunning ? 'Live Quarter Stream Active' : 'Awaiting Quarter Trigger'}
         </span>
       </div>
 
@@ -47,14 +47,14 @@ export default function AgentCommandDeck({
           signal={crisis?.severity_index}
           activity={
             crisis
-              ? `Synthesizing stress regime from demand, rates, liquidity, and confidence. Severity at ${num(crisis.severity_index)}.`
-              : 'Idle. Waiting for a simulation tick to map macro stress vectors.'
+              ? `Synthesizing business disruption: ${crisis.disruption_event}. Severity ${num(crisis.severity_index)}.`
+              : 'Idle. Waiting for a quarterly cycle to map disruption vectors.'
           }
           primaryMetrics={[
-            { label: 'Demand Drop', value: pct(crisis?.demand_drop) },
-            { label: 'Rate Spike', value: pct(crisis?.interest_rate_spike) },
-            { label: 'Liquidity Risk', value: pct(crisis?.liquidity_risk) },
-            { label: 'Confidence', value: pct(crisis?.consumer_confidence) }
+            { label: 'Supply Chain', value: pct(crisis?.supply_chain_disruption) },
+            { label: 'Demand Shock', value: pct(crisis?.demand_drop_intensity) },
+            { label: 'Competitor', value: pct(crisis?.competitor_price_pressure) },
+            { label: 'Recession', value: pct(crisis?.recession_pressure) }
           ]}
         />
 
@@ -66,7 +66,7 @@ export default function AgentCommandDeck({
           activity={
             decision
               ? `Selecting ${decision.strategy} from growth/stability differential with bounded stochastic variance.`
-              : 'Idle. Waiting for crisis context and financial state to produce a strategic action.'
+              : 'Idle. Waiting for disruption context and company state to produce a strategic action.'
           }
           primaryMetrics={[
             { label: 'Strategy', value: decision?.strategy ?? 'n/a' },
