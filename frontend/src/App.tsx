@@ -18,6 +18,7 @@ import type {
   ApiError,
   Archetype,
   CEODecision,
+  CrisisReport,
   FinancialState,
   MarketCandle,
   MarketRegime,
@@ -72,6 +73,8 @@ export default function App() {
   const [financialState, setFinancialState] = useState<FinancialState>(INITIAL_FINANCIAL_STATE);
   const [visionaryDecision, setVisionaryDecision] = useState<CEODecision | null>(null);
   const [conservativeDecision, setConservativeDecision] = useState<CEODecision | null>(null);
+  const [visionaryCrisis, setVisionaryCrisis] = useState<CrisisReport | null>(null);
+  const [conservativeCrisis, setConservativeCrisis] = useState<CrisisReport | null>(null);
   const [timeline, setTimeline] = useState<ResultPoint[]>([]);
   const [history, setHistory] = useState<SimulationHistory[]>([]);
   const [agentLogs, setAgentLogs] = useState<string[]>([]);
@@ -192,6 +195,16 @@ export default function App() {
 
       setVisionaryDecision(visionaryRes.ceo_decision);
       setConservativeDecision(conservativeRes.ceo_decision);
+      setVisionaryCrisis(visionaryRes.crisis_report);
+      setConservativeCrisis(conservativeRes.crisis_report);
+      appendLogs([
+        `[Crisis Intelligence Agent] shock synthesized: severity=${visionaryRes.crisis_report.severity_index.toFixed(3)}.`,
+        `[CEO Archetype Agent] visionary strategy=${visionaryRes.ceo_decision.strategy}, index=${visionaryRes.ceo_decision.strategy_index.toFixed(3)}.`,
+        `[CEO Archetype Agent] conservative strategy=${conservativeRes.ceo_decision.strategy}, index=${conservativeRes.ceo_decision.strategy_index.toFixed(3)}.`,
+        `[Market Sentiment Agent] adjustment=${visionaryRes.ceo_decision.support_signals?.market_sentiment.adjustment?.toFixed(3) ?? 'n/a'}.`,
+        `[Operations Efficiency Agent] adjustment=${visionaryRes.ceo_decision.support_signals?.operations.adjustment?.toFixed(3) ?? 'n/a'}.`,
+        `[Treasury Liquidity Agent] adjustment=${visionaryRes.ceo_decision.support_signals?.treasury.adjustment?.toFixed(3) ?? 'n/a'}.`
+      ]);
 
       const referenceDecision = selectedArchetype === 'VisionaryInnovator' ? visionaryRes.ceo_decision : conservativeRes.ceo_decision;
       setFinancialState((current) => updateFinancialState(current, referenceDecision));
@@ -224,7 +237,7 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [financialState, hydrateBackendData, navigate, selectedArchetype]);
+  }, [appendLogs, financialState, hydrateBackendData, navigate, selectedArchetype]);
 
   const closeLiveSockets = useCallback(() => {
     for (const socket of liveSocketsRef.current) {
@@ -272,11 +285,14 @@ export default function App() {
           updateMarketCandle(payload);
           const decision = payload.decision;
           const nextFinancial = payload.financial_state;
+          const crisis = payload.crisis;
 
           if (archetype === 'VisionaryInnovator') {
             setVisionaryDecision(decision);
+            if (crisis) setVisionaryCrisis(crisis);
           } else {
             setConservativeDecision(decision);
+            if (crisis) setConservativeCrisis(crisis);
           }
 
           setTimeline((current) => [
@@ -370,6 +386,8 @@ export default function App() {
       await resetSimulation();
       setVisionaryDecision(null);
       setConservativeDecision(null);
+      setVisionaryCrisis(null);
+      setConservativeCrisis(null);
       setTimeline([]);
       setHistory([]);
       setAgentLogs([]);
@@ -443,6 +461,8 @@ export default function App() {
                 <Simulation
                   visionaryDecision={visionaryDecision}
                   conservativeDecision={conservativeDecision}
+                  visionaryCrisis={visionaryCrisis}
+                  conservativeCrisis={conservativeCrisis}
                   liveRunning={liveRunning}
                   agentLogs={agentLogs}
                   onStartLive={startLive}

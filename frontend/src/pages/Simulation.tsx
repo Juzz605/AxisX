@@ -1,10 +1,13 @@
 import CEOCard from '../components/CEOCard';
+import AgentCommandDeck from '../components/agents/AgentCommandDeck';
 import MarketDashboard from '../components/market/MarketDashboard';
-import type { CEODecision, MarketCandle } from '../types/types';
+import type { CEODecision, CrisisReport, MarketCandle } from '../types/types';
 
 interface SimulationProps {
   visionaryDecision: CEODecision | null;
   conservativeDecision: CEODecision | null;
+  visionaryCrisis: CrisisReport | null;
+  conservativeCrisis: CrisisReport | null;
   liveRunning: boolean;
   agentLogs: string[];
   onStartLive: () => Promise<void>;
@@ -15,6 +18,8 @@ interface SimulationProps {
 export default function Simulation({
   visionaryDecision,
   conservativeDecision,
+  visionaryCrisis,
+  conservativeCrisis,
   liveRunning,
   agentLogs,
   onStartLive,
@@ -53,6 +58,14 @@ export default function Simulation({
         <CEOCard title="Visionary CEO Panel" decision={visionaryDecision} />
         <CEOCard title="Conservative CEO Panel" decision={conservativeDecision} />
       </div>
+
+      <AgentCommandDeck
+        visionaryDecision={visionaryDecision}
+        conservativeDecision={conservativeDecision}
+        visionaryCrisis={visionaryCrisis}
+        conservativeCrisis={conservativeCrisis}
+        liveRunning={liveRunning}
+      />
 
       <MarketDashboard candles={marketCandles} />
 
