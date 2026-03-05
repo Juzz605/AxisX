@@ -18,13 +18,13 @@ import type {
   ApiError,
   Archetype,
   CEODecision,
+  CEOProductPlan,
+  CompanyRevenuePoint,
   CompanyState,
   CrisisReport,
-  MarketCandle,
-  MarketInstrumentSnapshot,
-  MarketLearningSignal,
-  MarketRegime,
+  CustomerDemandInsight,
   LiveTickEvent,
+  ProductPerformance,
   ResultPoint,
   SimulationHistory,
   SimulationRequest,
@@ -41,60 +41,15 @@ const INITIAL_COMPANY_STATE: CompanyState = {
   cash_reserves: 0.57
 };
 
-const INITIAL_MARKET_INSTRUMENTS: MarketInstrumentSnapshot[] = [
-  { symbol: 'NIFTY 50', name: 'NSE Benchmark Index', price: 24765.9, change: 0, change_percent: 0, currency: 'INR' },
-  { symbol: 'NIFTY BANK', name: 'Banking Sector Index', price: 59055.85, change: 0, change_percent: 0, currency: 'INR' },
-  { symbol: 'SENSEX', name: 'BSE Benchmark Index', price: 80015.9, change: 0, change_percent: 0, currency: 'INR' },
-  { symbol: 'NASDAQ', name: 'US Tech Composite', price: 18120.4, change: 0, change_percent: 0, currency: 'USD' },
-  { symbol: 'AAPL', name: 'Apple Inc.', price: 195.22, change: 0, change_percent: 0, currency: 'USD' },
-  { symbol: 'MSFT', name: 'Microsoft Corp.', price: 418.3, change: 0, change_percent: 0, currency: 'USD' }
-];
-
 const INITIAL_CEO_CAPITAL = 50_000_000;
+const PRODUCT_NAMES: ProductPerformance['product'][] = ['iPhone', 'AirPods', 'iPad', 'iMac', 'MacBook Air', 'Apple Watch'];
 
-function clamp(value: number, min: number, max: number): number {
+function clamp(value: number, min = 0, max = 1): number {
   return Math.max(min, Math.min(max, value));
 }
 
-function computeEma(values: number[], period: number): number {
-  if (values.length === 0) return 0;
-  const k = 2 / (period + 1);
-  let ema = values[0];
-  for (let i = 1; i < values.length; i += 1) {
-    ema = values[i] * k + ema * (1 - k);
-  }
-  return ema;
-}
-
-function learnMarketPattern(candles: MarketCandle[]): MarketLearningSignal | null {
-  if (candles.length < 8) return null;
-  const closes = candles.map((c) => c.close);
-  const fast = computeEma(closes.slice(-20), 6);
-  const slow = computeEma(closes.slice(-40), 18);
-  const momentum = closes[closes.length - 1] / closes[Math.max(0, closes.length - 6)] - 1;
-  const volatility =
-    candles
-      .slice(-24)
-      .reduce((acc, candle) => acc + Math.abs((candle.high - candle.low) / Math.max(candle.open, 1)), 0) /
-    Math.min(24, candles.length);
-
-  const trendScore = (fast - slow) / Math.max(slow, 1);
-  const expectedMove = clamp(momentum * 0.58 + trendScore * 0.34 - volatility * 0.22, -0.04, 0.04);
-  const predicted = closes[closes.length - 1] * (1 + expectedMove);
-  const confidence = clamp(Math.abs(trendScore) * 22 + Math.abs(momentum) * 10 - volatility * 4, 0.12, 0.93);
-
-  let trend: MarketLearningSignal['trend'] = 'Sideways';
-  if (trendScore > 0.002) trend = 'Bullish';
-  if (trendScore < -0.002) trend = 'Bearish';
-
-  return {
-    trend,
-    predicted_price: Number(predicted.toFixed(2)),
-    confidence: Number(confidence.toFixed(4)),
-    volatility: Number(volatility.toFixed(4)),
-    fast_ema: Number(fast.toFixed(2)),
-    slow_ema: Number(slow.toFixed(2))
-  };
+function normalizeArchetype(value: string): Archetype {
+  return value === 'VisionaryInnovator' ? 'VisionaryInnovator' : 'ConservativeStabilizer';
 }
 
 function inferOutcome(decision: CEODecision): { outcome_success: boolean; liquidity_delta: number } {
@@ -110,14 +65,146 @@ function inferOutcome(decision: CEODecision): { outcome_success: boolean; liquid
 function updateCompanyState(current: CompanyState, decision: CEODecision): CompanyState {
   const m = decision.quarter_metrics;
   return {
-    product_demand: Number(clamp(current.product_demand + m.customer_growth * 0.25, 0, 1).toFixed(4)),
-    production_cost: Number(clamp(current.production_cost + (0.28 - m.profit_margin) * 0.2, 0, 1).toFixed(4)),
-    supply_chain_risk: Number(clamp(current.supply_chain_risk - m.brand_strength * 0.05 + decision.risk_level * 0.03, 0, 1).toFixed(4)),
-    competitor_pressure: Number(clamp(current.competitor_pressure - m.market_share * 0.07 + 0.015, 0, 1).toFixed(4)),
-    marketing_effectiveness: Number(clamp(current.marketing_effectiveness + m.brand_strength * 0.04, 0, 1).toFixed(4)),
-    customer_sentiment: Number(clamp(current.customer_sentiment + m.customer_growth * 0.16, 0, 1).toFixed(4)),
-    cash_reserves: Number(clamp(m.company_cash_balance / 12_000_000, 0, 1).toFixed(4))
+    product_demand: Number(clamp(current.product_demand + m.customer_growth * 0.25).toFixed(4)),
+    production_cost: Number(clamp(current.production_cost + (0.28 - m.profit_margin) * 0.2).toFixed(4)),
+    supply_chain_risk: Number(clamp(current.supply_chain_risk - m.brand_strength * 0.05 + decision.risk_level * 0.03).toFixed(4)),
+    competitor_pressure: Number(clamp(current.competitor_pressure - m.market_share * 0.07 + 0.015).toFixed(4)),
+    marketing_effectiveness: Number(clamp(current.marketing_effectiveness + m.brand_strength * 0.04).toFixed(4)),
+    customer_sentiment: Number(clamp(current.customer_sentiment + m.customer_growth * 0.16).toFixed(4)),
+    cash_reserves: Number(clamp(m.company_cash_balance / 12_000_000).toFixed(4))
   };
+}
+
+function initialProducts(): ProductPerformance[] {
+  return [
+    {
+      product: 'iPhone',
+      monthly_units_sold: 5_200_000,
+      yearly_units_sold: 62_000_000,
+      inventory_utilization: 0.78,
+      production_focus: 'increase',
+      primary_color: 'Midnight',
+      color_mix: { Midnight: 34, Starlight: 22, Blue: 17, Red: 12, Pink: 15 },
+      why_customers_buy: 'Camera upgrade + premium ecosystem lock-in',
+      buying_window: 'Launch season and festive quarter'
+    },
+    {
+      product: 'AirPods',
+      monthly_units_sold: 3_100_000,
+      yearly_units_sold: 36_000_000,
+      inventory_utilization: 0.72,
+      production_focus: 'hold',
+      primary_color: 'White',
+      color_mix: { White: 84, Black: 8, Green: 4, Purple: 4 },
+      why_customers_buy: 'Convenience + bundled ecosystem',
+      buying_window: 'Holiday gifting spikes'
+    },
+    {
+      product: 'iPad',
+      monthly_units_sold: 1_900_000,
+      yearly_units_sold: 22_000_000,
+      inventory_utilization: 0.66,
+      production_focus: 'hold',
+      primary_color: 'Silver',
+      color_mix: { Silver: 35, SpaceGray: 40, Blue: 15, Purple: 10 },
+      why_customers_buy: 'Education + content consumption',
+      buying_window: 'Back-to-school and semester starts'
+    },
+    {
+      product: 'iMac',
+      monthly_units_sold: 420_000,
+      yearly_units_sold: 5_000_000,
+      inventory_utilization: 0.58,
+      production_focus: 'reduce',
+      primary_color: 'Blue',
+      color_mix: { Blue: 31, Green: 18, Pink: 15, Silver: 24, Yellow: 12 },
+      why_customers_buy: 'Design-heavy workspace preference',
+      buying_window: 'Q4 enterprise refresh cycles'
+    },
+    {
+      product: 'MacBook Air',
+      monthly_units_sold: 1_700_000,
+      yearly_units_sold: 20_000_000,
+      inventory_utilization: 0.71,
+      production_focus: 'increase',
+      primary_color: 'Space Gray',
+      color_mix: { SpaceGray: 38, Silver: 29, Midnight: 23, Starlight: 10 },
+      why_customers_buy: 'Student demand + portability',
+      buying_window: 'Back-to-school and exam prep months'
+    },
+    {
+      product: 'Apple Watch',
+      monthly_units_sold: 1_350_000,
+      yearly_units_sold: 16_000_000,
+      inventory_utilization: 0.64,
+      production_focus: 'hold',
+      primary_color: 'Black',
+      color_mix: { Black: 44, Silver: 24, Blue: 14, Red: 8, Pink: 10 },
+      why_customers_buy: 'Health monitoring and fitness trends',
+      buying_window: 'New Year fitness cycle'
+    }
+  ];
+}
+
+function initialInsight(): CustomerDemandInsight {
+  return {
+    top_reason: 'Camera + ecosystem continuity',
+    top_segment: 'Students and young professionals',
+    top_region: 'India Urban + US Coastal',
+    top_color_preference: 'Midnight',
+    seasonal_driver: 'Back-to-school season and flagship launch quarter'
+  };
+}
+
+function derivePlan(archetype: Archetype, decision: CEODecision, products: ProductPerformance[]): CEOProductPlan {
+  const sortedByDemand = [...products].sort((a, b) => b.monthly_units_sold - a.monthly_units_sold);
+  const sortedByInventory = [...products].sort((a, b) => a.inventory_utilization - b.inventory_utilization);
+
+  const product_to_market = decision.strategy === 'increase_marketing' ? sortedByDemand[0].product : sortedByDemand[1].product;
+  const product_to_scale = decision.strategy === 'enter_new_market' || decision.strategy === 'invest_in_r_and_d'
+    ? sortedByDemand[0].product
+    : sortedByDemand[2].product;
+  const product_to_reduce = sortedByInventory[0].product;
+
+  return {
+    archetype,
+    product_to_market,
+    product_to_scale,
+    product_to_reduce,
+    rationale:
+      archetype === 'VisionaryInnovator'
+        ? 'Prioritize growth SKUs, attach premium features, and accelerate launch cadence where demand momentum is highest.'
+        : 'Protect cash by trimming weak inventory lines and scaling only proven products with stable conversion.'
+  };
+}
+
+function evolveProducts(
+  current: ProductPerformance[],
+  decision: CEODecision,
+  crisis: CrisisReport,
+  companyState: CompanyState
+): ProductPerformance[] {
+  return current.map((product, idx) => {
+    const demandPulse = companyState.product_demand * 0.9 + companyState.customer_sentiment * 0.5 - crisis.demand_drop_intensity * 0.4;
+    const strategicLift = decision.strategy_index * (0.08 + idx * 0.006);
+    const seasonal = Math.sin((Date.now() / 1000 / 60 / 60 / 24 + idx * 11) * 0.2) * 0.06;
+    const growthFactor = 1 + demandPulse * 0.05 + strategicLift + seasonal;
+
+    const monthly = Math.max(50_000, Math.round(product.monthly_units_sold * growthFactor));
+    const yearly = Math.max(monthly * 8, Math.round(product.yearly_units_sold * (1 + growthFactor * 0.08)));
+    const utilization = clamp(product.inventory_utilization + growthFactor * 0.03 - companyState.production_cost * 0.02, 0.35, 0.95);
+
+    const production_focus: ProductPerformance['production_focus'] =
+      growthFactor > 1.05 ? 'increase' : growthFactor < 0.96 ? 'reduce' : 'hold';
+
+    return {
+      ...product,
+      monthly_units_sold: monthly,
+      yearly_units_sold: yearly,
+      inventory_utilization: Number(utilization.toFixed(4)),
+      production_focus
+    };
+  });
 }
 
 export default function App() {
@@ -128,17 +215,35 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [liveRunning, setLiveRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   const [companyState, setCompanyState] = useState<CompanyState>(INITIAL_COMPANY_STATE);
   const [visionaryDecision, setVisionaryDecision] = useState<CEODecision | null>(null);
   const [conservativeDecision, setConservativeDecision] = useState<CEODecision | null>(null);
   const [visionaryCrisis, setVisionaryCrisis] = useState<CrisisReport | null>(null);
   const [conservativeCrisis, setConservativeCrisis] = useState<CrisisReport | null>(null);
+
   const [timeline, setTimeline] = useState<ResultPoint[]>([]);
   const [history, setHistory] = useState<SimulationHistory[]>([]);
   const [agentLogs, setAgentLogs] = useState<string[]>([]);
-  const [marketCandles, setMarketCandles] = useState<MarketCandle[]>([]);
-  const [marketInstruments, setMarketInstruments] = useState<MarketInstrumentSnapshot[]>(INITIAL_MARKET_INSTRUMENTS);
-  const [marketLearning, setMarketLearning] = useState<MarketLearningSignal | null>(null);
+
+  const [products, setProducts] = useState<ProductPerformance[]>(initialProducts());
+  const [customerInsight, setCustomerInsight] = useState<CustomerDemandInsight>(initialInsight());
+  const [revenueTimeline, setRevenueTimeline] = useState<CompanyRevenuePoint[]>([]);
+  const [visionaryPlan, setVisionaryPlan] = useState<CEOProductPlan>({
+    archetype: 'VisionaryInnovator',
+    product_to_market: 'iPhone',
+    product_to_scale: 'MacBook Air',
+    product_to_reduce: 'iMac',
+    rationale: 'Launch-focused growth plan.'
+  });
+  const [conservativePlan, setConservativePlan] = useState<CEOProductPlan>({
+    archetype: 'ConservativeStabilizer',
+    product_to_market: 'AirPods',
+    product_to_scale: 'iPhone',
+    product_to_reduce: 'iMac',
+    rationale: 'Efficiency-focused allocation plan.'
+  });
+
   const [visionaryCapital, setVisionaryCapital] = useState<number>(INITIAL_CEO_CAPITAL);
   const [conservativeCapital, setConservativeCapital] = useState<number>(INITIAL_CEO_CAPITAL);
   const [visionaryPnlPercent, setVisionaryPnlPercent] = useState<number>(0);
@@ -152,112 +257,111 @@ export default function App() {
     setAgentLogs((current) => [...current, ...entries].slice(-220));
   }, []);
 
-  const deriveRegime = useCallback((severity: number): MarketRegime => {
-    if (severity < 0.25) return 'Expansion';
-    if (severity < 0.45) return 'Stable';
-    if (severity < 0.7) return 'Stress';
-    return 'Crisis';
-  }, []);
-
-  const updateMarketCandle = useCallback(
-    (tick: LiveTickEvent) => {
-      if (!tick.crisis || !tick.decision) {
-        return;
+  const applyQuarterUpdate = useCallback(
+    (archetype: Archetype, decision: CEODecision, crisis: CrisisReport, nextState: CompanyState, timestamp: string, quarter: number) => {
+      if (archetype === 'VisionaryInnovator') {
+        setVisionaryDecision(decision);
+        setVisionaryCrisis(crisis);
+        setVisionaryCapital((current) => {
+          const next = current * (1 + decision.strategy_index * 0.009 - decision.risk_level * 0.002);
+          setVisionaryPnlPercent(((next - INITIAL_CEO_CAPITAL) / INITIAL_CEO_CAPITAL) * 100);
+          return next;
+        });
+      } else {
+        setConservativeDecision(decision);
+        setConservativeCrisis(crisis);
+        setConservativeCapital((current) => {
+          const next = current * (1 + decision.strategy_index * 0.007 - decision.risk_level * 0.0014);
+          setConservativePnlPercent(((next - INITIAL_CEO_CAPITAL) / INITIAL_CEO_CAPITAL) * 100);
+          return next;
+        });
       }
-      const crisis = tick.crisis;
-      const decision = tick.decision;
-      let nextCandles: MarketCandle[] = [];
 
-      setMarketCandles((current) => {
-        const previousClose = current.length > 0 ? current[current.length - 1].close : 24765.9;
-        const shockPressure =
-          crisis.demand_drop_intensity * 0.78 +
-          crisis.competitor_price_pressure * 0.68 +
-          crisis.recession_pressure * 0.82 -
-          (1 - crisis.supply_chain_disruption) * 0.42;
-        const strategicDrift = decision.strategy_index * 0.045;
-        const delta = Math.max(-0.09, Math.min(0.09, strategicDrift - shockPressure * 0.02));
+      setTimeline((current) => [
+        ...current,
+        {
+          timestamp,
+          archetype,
+          strategy_index: decision.strategy_index,
+          cash_reserves: nextState.cash_reserves,
+          production_cost: nextState.production_cost,
+          product_demand: nextState.product_demand,
+          market_share: decision.quarter_metrics.market_share,
+          traits: decision.updated_traits
+        }
+      ]);
 
-        const open = previousClose;
-        const close = Math.max(50, open * (1 + delta));
-        const volatility = Math.max(0.0025, crisis.severity_index * 0.018);
-        const high = Math.max(open, close) * (1 + volatility);
-        const low = Math.min(open, close) * (1 - volatility);
-        const volume = Math.round(400_000 + crisis.severity_index * 700_000 + Math.abs(delta) * 1_200_000);
+      if (archetype === selectedArchetype) {
+        setCompanyState(nextState);
+      }
 
-        const candle: MarketCandle = {
-          timestamp: tick.timestamp,
-          label: `Q${tick.quarter}`,
-          open: Number(open.toFixed(2)),
-          high: Number(high.toFixed(2)),
-          low: Number(low.toFixed(2)),
-          close: Number(close.toFixed(2)),
-          volume,
-          regime: deriveRegime(crisis.severity_index)
-        };
-
-        nextCandles = [...current, candle].slice(-140);
-        return nextCandles;
+      setProducts((current) => {
+        const updated = evolveProducts(current, decision, crisis, nextState);
+        setVisionaryPlan((plan) =>
+          archetype === 'VisionaryInnovator' ? derivePlan('VisionaryInnovator', decision, updated) : plan
+        );
+        setConservativePlan((plan) =>
+          archetype === 'ConservativeStabilizer' ? derivePlan('ConservativeStabilizer', decision, updated) : plan
+        );
+        return updated;
       });
 
-      if (nextCandles.length > 0) {
-        const learning = learnMarketPattern(nextCandles);
-        setMarketLearning(learning);
+      setRevenueTimeline((current) => {
+        const prev = current[current.length - 1];
+        const growth = prev ? (decision.quarter_metrics.revenue - prev.revenue) / Math.max(prev.revenue, 1) : 0;
+        return [
+          ...current,
+          {
+            quarter,
+            label: `Q${quarter}`,
+            revenue: decision.quarter_metrics.revenue,
+            growth_rate: Number(growth.toFixed(4)),
+            market_share: decision.quarter_metrics.market_share
+          }
+        ].slice(-24);
+      });
 
-        const movePercent = (nextCandles[nextCandles.length - 1].close - nextCandles[nextCandles.length - 1].open) /
-          Math.max(nextCandles[nextCandles.length - 1].open, 1);
-
-        setMarketInstruments((current) =>
-          current.map((instrument, index) => {
-            const beta = [1.0, 1.18, 0.95, 1.05, 1.45, 1.34][index] ?? 1.0;
-            const noise = Math.sin(nextCandles.length + index * 13.2) * 0.0018;
-            const stepReturn = movePercent * beta + noise;
-            const nextPrice = instrument.price * (1 + stepReturn);
-            const delta = nextPrice - instrument.price;
-            return {
-              ...instrument,
-              price: Number(nextPrice.toFixed(2)),
-              change: Number(delta.toFixed(2)),
-              change_percent: Number((stepReturn * 100).toFixed(3))
-            };
-          })
-        );
-      }
+      setCustomerInsight({
+        top_reason: nextState.customer_sentiment > 0.62 ? 'Perceived premium value and ecosystem trust' : 'Price-performance balance',
+        top_segment: nextState.product_demand > 0.62 ? 'Students + creators' : 'Mainstream family buyers',
+        top_region: nextState.marketing_effectiveness > 0.6 ? 'India metros + US urban hubs' : 'Mixed global urban cluster',
+        top_color_preference: products[0]?.primary_color ?? 'Midnight',
+        seasonal_driver:
+          nextState.product_demand > 0.64
+            ? 'Back-to-school demand and flagship cycle'
+            : 'Holiday gifting and replacement purchases'
+      });
     },
-    [deriveRegime]
+    [products, selectedArchetype]
   );
 
   const hydrateBackendData = useCallback(async () => {
     try {
       const [resultRows, historyRows] = await Promise.all([fetchResults(), fetchHistory()]);
-
-      const normalizedPoints: ResultPoint[] = resultRows.map((result, index) => ({
-        timestamp: new Date(Date.now() + index * 60000).toISOString(),
-        archetype:
-          result.ceo_decision.updated_traits.name === 'VisionaryInnovator' ? 'VisionaryInnovator' : 'ConservativeStabilizer',
-        strategy_index: result.ceo_decision.strategy_index,
-        cash_reserves: result.ceo_decision.quarter_metrics.company_cash_balance / 12_000_000,
-        production_cost: companyState.production_cost,
-        product_demand: companyState.product_demand,
-        market_share: result.ceo_decision.quarter_metrics.market_share,
-        traits: result.ceo_decision.updated_traits
-      }));
-
-      setTimeline((current) => (current.length > 0 ? current : normalizedPoints));
       setHistory(historyRows);
+
+      if (resultRows.length > 0 && timeline.length === 0) {
+        const points = resultRows.map((result, index) => ({
+          timestamp: new Date(Date.now() + index * 60000).toISOString(),
+          archetype: normalizeArchetype(result.ceo_decision.updated_traits.name),
+          strategy_index: result.ceo_decision.strategy_index,
+          cash_reserves: result.ceo_decision.quarter_metrics.company_cash_balance / 12_000_000,
+          production_cost: companyState.production_cost,
+          product_demand: companyState.product_demand,
+          market_share: result.ceo_decision.quarter_metrics.market_share,
+          traits: result.ceo_decision.updated_traits
+        }));
+        setTimeline(points);
+      }
     } catch (apiError) {
       const err = apiError as ApiError;
-      if (err.status === 404) {
-        return;
-      }
-      setError(err.message || 'Failed to load historical backend data');
+      if (err.status !== 404) setError(err.message || 'Failed to load backend history');
     }
-  }, [companyState.product_demand, companyState.production_cost]);
+  }, [companyState.product_demand, companyState.production_cost, timeline.length]);
 
   const runSimulation = useCallback(async () => {
     setLoading(true);
     setError(null);
-
     try {
       const baseSeed = Date.now() % 100000;
 
@@ -266,7 +370,6 @@ export default function App() {
         company_state: companyState,
         seed: baseSeed
       };
-
       const conservativeReq: SimulationRequest = {
         archetype: 'ConservativeStabilizer',
         company_state: companyState,
@@ -286,56 +389,18 @@ export default function App() {
         simulate({ ...conservativeReq, ...conservativeOutcome })
       ]);
 
-      setVisionaryDecision(visionaryRes.ceo_decision);
-      setConservativeDecision(conservativeRes.ceo_decision);
-      setVisionaryCrisis(visionaryRes.crisis_report);
-      setConservativeCrisis(conservativeRes.crisis_report);
-      setVisionaryCapital((current) => {
-        const realized = visionaryRes.ceo_decision.strategy_index * 0.015 - visionaryRes.ceo_decision.risk_level * 0.004;
-        const next = current * (1 + realized);
-        setVisionaryPnlPercent(((next - INITIAL_CEO_CAPITAL) / INITIAL_CEO_CAPITAL) * 100);
-        return next;
-      });
-      setConservativeCapital((current) => {
-        const realized = conservativeRes.ceo_decision.strategy_index * 0.012 - conservativeRes.ceo_decision.risk_level * 0.0025;
-        const next = current * (1 + realized);
-        setConservativePnlPercent(((next - INITIAL_CEO_CAPITAL) / INITIAL_CEO_CAPITAL) * 100);
-        return next;
-      });
+      const now = new Date().toISOString();
+      const nextStateFromVisionary = updateCompanyState(companyState, visionaryRes.ceo_decision);
+      applyQuarterUpdate('VisionaryInnovator', visionaryRes.ceo_decision, visionaryRes.crisis_report, nextStateFromVisionary, now, timeline.length + 1);
+      applyQuarterUpdate('ConservativeStabilizer', conservativeRes.ceo_decision, conservativeRes.crisis_report, updateCompanyState(companyState, conservativeRes.ceo_decision), now, timeline.length + 1);
+
       appendLogs([
-        `[Crisis Monitoring Agent] shock synthesized: severity=${visionaryRes.crisis_report.severity_index.toFixed(3)}.`,
-        `[CEO Archetype Agent] visionary strategy=${visionaryRes.ceo_decision.strategy}, index=${visionaryRes.ceo_decision.strategy_index.toFixed(3)}.`,
-        `[CEO Archetype Agent] conservative strategy=${conservativeRes.ceo_decision.strategy}, index=${conservativeRes.ceo_decision.strategy_index.toFixed(3)}.`,
-        `[Market Intelligence Agent] adjustment=${visionaryRes.ceo_decision.support_signals?.market_sentiment.adjustment?.toFixed(3) ?? 'n/a'}.`,
-        `[Innovation Strategy Agent] adjustment=${visionaryRes.ceo_decision.support_signals?.operations.adjustment?.toFixed(3) ?? 'n/a'}.`,
-        `[Finance & Treasury Agent] adjustment=${visionaryRes.ceo_decision.support_signals?.treasury.adjustment?.toFixed(3) ?? 'n/a'}.`
-      ]);
-
-      const referenceDecision = selectedArchetype === 'VisionaryInnovator' ? visionaryRes.ceo_decision : conservativeRes.ceo_decision;
-      setCompanyState((current) => updateCompanyState(current, referenceDecision));
-
-      setTimeline((current) => [
-        ...current,
-        {
-          timestamp: new Date().toISOString(),
-          archetype: 'VisionaryInnovator',
-          strategy_index: visionaryRes.ceo_decision.strategy_index,
-          cash_reserves: companyState.cash_reserves,
-          production_cost: companyState.production_cost,
-          product_demand: companyState.product_demand,
-          market_share: visionaryRes.ceo_decision.quarter_metrics.market_share,
-          traits: visionaryRes.ceo_decision.updated_traits
-        },
-        {
-          timestamp: new Date().toISOString(),
-          archetype: 'ConservativeStabilizer',
-          strategy_index: conservativeRes.ceo_decision.strategy_index,
-          cash_reserves: companyState.cash_reserves,
-          production_cost: companyState.production_cost,
-          product_demand: companyState.product_demand,
-          market_share: conservativeRes.ceo_decision.quarter_metrics.market_share,
-          traits: conservativeRes.ceo_decision.updated_traits
-        }
+        `[Crisis Monitoring Agent] event=${visionaryRes.crisis_report.disruption_event}, severity=${visionaryRes.crisis_report.severity_index.toFixed(3)}.`,
+        `[CEO Archetype Agent] visionary strategy=${visionaryRes.ceo_decision.strategy}.`,
+        `[CEO Archetype Agent] conservative strategy=${conservativeRes.ceo_decision.strategy}.`,
+        `[Market Intelligence Agent] customer_signal=${visionaryRes.ceo_decision.support_signals?.market_sentiment.momentum_signal.toFixed(3) ?? 'n/a'}.`,
+        `[Innovation Strategy Agent] execution_risk=${visionaryRes.ceo_decision.support_signals?.operations.execution_risk.toFixed(3) ?? 'n/a'}.`,
+        `[Finance & Treasury Agent] liquidity_health=${visionaryRes.ceo_decision.support_signals?.treasury.liquidity_health.toFixed(3) ?? 'n/a'}.`
       ]);
 
       await hydrateBackendData();
@@ -346,7 +411,7 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [appendLogs, companyState, hydrateBackendData, navigate, selectedArchetype]);
+  }, [appendLogs, applyQuarterUpdate, companyState, hydrateBackendData, navigate, timeline.length]);
 
   const closeLiveSockets = useCallback(() => {
     for (const socket of liveSocketsRef.current) {
@@ -369,10 +434,7 @@ export default function App() {
     const stops: Promise<void>[] = [];
     if (visionary) stops.push(stopLiveSimulation(visionary));
     if (conservative) stops.push(stopLiveSimulation(conservative));
-
-    if (stops.length > 0) {
-      await Promise.allSettled(stops);
-    }
+    if (stops.length > 0) await Promise.allSettled(stops);
   }, [closeLiveSockets]);
 
   const wireLiveSocket = useCallback(
@@ -386,56 +448,11 @@ export default function App() {
           return;
         }
 
-        if (payload.agent_logs) {
-          appendLogs(payload.agent_logs);
-        }
+        if (payload.agent_logs) appendLogs(payload.agent_logs);
 
-        const nextState = payload.company_state ?? payload.financial_state;
-        if (payload.event === 'tick' && payload.decision && nextState) {
-          updateMarketCandle(payload);
-          const decision = payload.decision;
-          const crisis = payload.crisis;
-          const marketMove = payload.crisis
-            ? ((1 - payload.crisis.competitor_price_pressure) - payload.crisis.recession_pressure) * 0.008
-            : 0;
-
-          if (archetype === 'VisionaryInnovator') {
-            setVisionaryDecision(decision);
-            if (crisis) setVisionaryCrisis(crisis);
-            setVisionaryCapital((current) => {
-              const realized = decision.strategy_index * 0.01 + marketMove - decision.risk_level * 0.003;
-              const next = current * (1 + realized);
-              setVisionaryPnlPercent(((next - INITIAL_CEO_CAPITAL) / INITIAL_CEO_CAPITAL) * 100);
-              return next;
-            });
-          } else {
-            setConservativeDecision(decision);
-            if (crisis) setConservativeCrisis(crisis);
-            setConservativeCapital((current) => {
-              const realized = decision.strategy_index * 0.008 + marketMove * 0.75 - decision.risk_level * 0.0018;
-              const next = current * (1 + realized);
-              setConservativePnlPercent(((next - INITIAL_CEO_CAPITAL) / INITIAL_CEO_CAPITAL) * 100);
-              return next;
-            });
-          }
-
-          setTimeline((current) => [
-            ...current,
-            {
-              timestamp: payload.timestamp,
-              archetype,
-              strategy_index: decision.strategy_index,
-              cash_reserves: nextState.cash_reserves,
-              production_cost: nextState.production_cost,
-              product_demand: nextState.product_demand,
-              market_share: decision.quarter_metrics.market_share,
-              traits: decision.updated_traits
-            }
-          ]);
-
-          if (archetype === selectedArchetype) {
-            setCompanyState(nextState);
-          }
+        const state = payload.company_state ?? payload.financial_state;
+        if (payload.event === 'tick' && payload.decision && payload.crisis && state) {
+          applyQuarterUpdate(archetype, payload.decision, payload.crisis, state, payload.timestamp, payload.quarter);
         }
 
         if (payload.event === 'complete') {
@@ -443,49 +460,38 @@ export default function App() {
         }
       };
 
-      socket.onopen = () => {
-        appendLogs([`[Live Engine] ${archetype} websocket connected.`]);
-      };
-
-      socket.onerror = () => {
-        setError(`Live websocket error for ${archetype}.`);
-      };
-
+      socket.onopen = () => appendLogs([`[Live Engine] ${archetype} websocket connected.`]);
+      socket.onerror = () => setError(`Live websocket error for ${archetype}.`);
       liveSocketsRef.current.push(socket);
     },
-    [appendLogs, selectedArchetype, updateMarketCandle]
+    [appendLogs, applyQuarterUpdate]
   );
 
   const startLive = useCallback(async () => {
     setError(null);
     setLoading(true);
-
     try {
       await stopLive();
-
       const baseSeed = Date.now() % 1_000_000;
+
       const [visionary, conservative] = await Promise.all([
         startLiveSimulation({
           archetype: 'VisionaryInnovator',
           company_state: companyState,
-          tick_seconds: 1.25,
-          max_quarters: 40,
+          tick_seconds: 1.2,
+          max_quarters: 36,
           seed: baseSeed
         }),
         startLiveSimulation({
           archetype: 'ConservativeStabilizer',
           company_state: companyState,
-          tick_seconds: 1.25,
-          max_quarters: 40,
+          tick_seconds: 1.2,
+          max_quarters: 36,
           seed: baseSeed + 7
         })
       ]);
 
-      liveSessionIdsRef.current = {
-        visionary: visionary.session_id,
-        conservative: conservative.session_id
-      };
-
+      liveSessionIdsRef.current = { visionary: visionary.session_id, conservative: conservative.session_id };
       setLiveRunning(true);
       appendLogs([
         `[Live Engine] Started Visionary session=${visionary.session_id}`,
@@ -517,14 +523,14 @@ export default function App() {
       setTimeline([]);
       setHistory([]);
       setAgentLogs([]);
-      setMarketCandles([]);
-      setMarketInstruments(INITIAL_MARKET_INSTRUMENTS);
-      setMarketLearning(null);
+      setCompanyState(INITIAL_COMPANY_STATE);
+      setProducts(initialProducts());
+      setCustomerInsight(initialInsight());
+      setRevenueTimeline([]);
       setVisionaryCapital(INITIAL_CEO_CAPITAL);
       setConservativeCapital(INITIAL_CEO_CAPITAL);
       setVisionaryPnlPercent(0);
       setConservativePnlPercent(0);
-      setCompanyState(INITIAL_COMPANY_STATE);
       navigate('/');
     } catch (apiError) {
       const err = apiError as ApiError;
@@ -535,13 +541,10 @@ export default function App() {
   }, [navigate, stopLive]);
 
   const analyticsPoints = useMemo(() => {
-    if (timeline.length > 0) {
-      return timeline;
-    }
-
+    if (timeline.length > 0) return timeline;
     return history.map((record) => ({
       timestamp: record.timestamp,
-      archetype: record.profile_name as Archetype,
+      archetype: normalizeArchetype(record.profile_name),
       strategy_index: record.strategy_index,
       cash_reserves: Math.max(0.05, companyState.cash_reserves + record.liquidity_delta),
       production_cost: companyState.production_cost,
@@ -555,11 +558,7 @@ export default function App() {
     void hydrateBackendData();
   }, [hydrateBackendData]);
 
-  useEffect(() => {
-    return () => {
-      closeLiveSockets();
-    };
-  }, [closeLiveSockets]);
+  useEffect(() => () => closeLiveSockets(), [closeLiveSockets]);
 
   return (
     <div className="min-h-screen bg-bg text-textMain">
@@ -570,9 +569,7 @@ export default function App() {
           <span className="text-xs uppercase tracking-[0.14em] text-textSub">{location.pathname}</span>
         </div>
 
-        {error ? (
-          <div className="mb-5 rounded-md border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</div>
-        ) : null}
+        {error ? <div className="mb-5 rounded-md border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">{error}</div> : null}
 
         <div className="animate-[fadeIn_180ms_ease-out] transition-opacity duration-200 ease-executive">
           <Routes>
@@ -601,9 +598,11 @@ export default function App() {
                   agentLogs={agentLogs}
                   onStartLive={startLive}
                   onStopLive={stopLive}
-                  marketCandles={marketCandles}
-                  marketInstruments={marketInstruments}
-                  marketLearning={marketLearning}
+                  revenueTimeline={revenueTimeline}
+                  products={products}
+                  customerInsight={customerInsight}
+                  visionaryPlan={visionaryPlan}
+                  conservativePlan={conservativePlan}
                   visionaryCapital={visionaryCapital}
                   conservativeCapital={conservativeCapital}
                   visionaryPnlPercent={visionaryPnlPercent}

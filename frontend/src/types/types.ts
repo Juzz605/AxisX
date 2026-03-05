@@ -194,3 +194,39 @@ export interface MarketLearningSignal {
   fast_ema: number;
   slow_ema: number;
 }
+
+export interface CompanyRevenuePoint {
+  quarter: number;
+  label: string;
+  revenue: number;
+  growth_rate: number;
+  market_share: number;
+}
+
+export interface ProductPerformance {
+  product: 'iPhone' | 'AirPods' | 'iPad' | 'iMac' | 'MacBook Air' | 'Apple Watch';
+  monthly_units_sold: number;
+  yearly_units_sold: number;
+  inventory_utilization: number;
+  production_focus: 'increase' | 'hold' | 'reduce';
+  primary_color: string;
+  color_mix: Record<string, number>;
+  why_customers_buy: string;
+  buying_window: string;
+}
+
+export interface CustomerDemandInsight {
+  top_reason: string;
+  top_segment: string;
+  top_region: string;
+  top_color_preference: string;
+  seasonal_driver: string;
+}
+
+export interface CEOProductPlan {
+  archetype: Archetype;
+  product_to_market: ProductPerformance['product'];
+  product_to_scale: ProductPerformance['product'];
+  product_to_reduce: ProductPerformance['product'];
+  rationale: string;
+}

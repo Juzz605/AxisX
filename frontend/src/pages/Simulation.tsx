@@ -1,7 +1,14 @@
 import CEOCard from '../components/CEOCard';
 import AgentCommandDeck from '../components/agents/AgentCommandDeck';
-import MarketDashboard from '../components/market/MarketDashboard';
-import type { CEODecision, CrisisReport, MarketCandle, MarketInstrumentSnapshot, MarketLearningSignal } from '../types/types';
+import CompanyGrowthDashboard from '../components/company/CompanyGrowthDashboard';
+import type {
+  CEODecision,
+  CEOProductPlan,
+  CompanyRevenuePoint,
+  CrisisReport,
+  CustomerDemandInsight,
+  ProductPerformance
+} from '../types/types';
 
 interface SimulationProps {
   visionaryDecision: CEODecision | null;
@@ -12,9 +19,11 @@ interface SimulationProps {
   agentLogs: string[];
   onStartLive: () => Promise<void>;
   onStopLive: () => Promise<void>;
-  marketCandles: MarketCandle[];
-  marketInstruments: MarketInstrumentSnapshot[];
-  marketLearning: MarketLearningSignal | null;
+  revenueTimeline: CompanyRevenuePoint[];
+  products: ProductPerformance[];
+  customerInsight: CustomerDemandInsight;
+  visionaryPlan: CEOProductPlan;
+  conservativePlan: CEOProductPlan;
   visionaryCapital: number;
   conservativeCapital: number;
   visionaryPnlPercent: number;
@@ -32,9 +41,11 @@ export default function Simulation({
   agentLogs,
   onStartLive,
   onStopLive,
-  marketCandles,
-  marketInstruments,
-  marketLearning,
+  revenueTimeline,
+  products,
+  customerInsight,
+  visionaryPlan,
+  conservativePlan,
   visionaryCapital,
   conservativeCapital,
   visionaryPnlPercent,
@@ -95,7 +106,14 @@ export default function Simulation({
         liveRunning={liveRunning}
       />
 
-      <MarketDashboard candles={marketCandles} instruments={marketInstruments} learning={marketLearning} />
+      <CompanyGrowthDashboard
+        revenueTimeline={revenueTimeline}
+        products={products}
+        insight={customerInsight}
+        visionaryPlan={visionaryPlan}
+        conservativePlan={conservativePlan}
+        cashReservePct={(visionaryCashReserve + conservativeCashReserve) / (12_000_000)}
+      />
 
       <section className="rounded-xl border border-border bg-panel p-5 shadow-glow">
         <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-textSub">Agent Log Stream</h3>
