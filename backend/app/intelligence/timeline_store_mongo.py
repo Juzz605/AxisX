@@ -1,10 +1,10 @@
-"""MongoDB store for quarter-by-quarter simulation timeline records."""
+"""MongoDB store for quarter-by-quarter company simulation timeline records."""
 
 from datetime import datetime, timezone
 
 from pymongo.collection import Collection
 
-from app.intelligence.schemas import CEODecision, CrisisReport, FinancialState
+from app.intelligence.schemas import CEODecision, CompanyState, CrisisReport
 from app.intelligence.timeline_store import TimelineQuarterRow
 
 
@@ -23,7 +23,7 @@ class MongoTimelineStore:
         archetype: str,
         crisis: CrisisReport,
         decision: CEODecision,
-        financial_state: FinancialState,
+        company_state: CompanyState,
     ) -> None:
         created_at = datetime.now(timezone.utc)
         self._collection.update_one(
@@ -35,7 +35,7 @@ class MongoTimelineStore:
                     "archetype": archetype,
                     "crisis": crisis.model_dump(mode="json"),
                     "decision": decision.model_dump(mode="json"),
-                    "financial_state": financial_state.model_dump(mode="json"),
+                    "company_state": company_state.model_dump(mode="json"),
                     "created_at": created_at,
                 }
             },
@@ -67,6 +67,6 @@ class MongoTimelineStore:
             archetype=str(doc.get("archetype", "")),
             crisis=CrisisReport.model_validate(doc.get("crisis", {})),
             decision=CEODecision.model_validate(doc.get("decision", {})),
-            financial_state=FinancialState.model_validate(doc.get("financial_state", {})),
+            company_state=CompanyState.model_validate(doc.get("company_state", doc.get("financial_state", {}))),
             created_at=created_at_str,
         )

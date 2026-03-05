@@ -1,15 +1,12 @@
-"""Database store for quarter-by-quarter simulation timeline records."""
+"""Database store for quarter-by-quarter company simulation timeline records."""
 
 import json
-import logging
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Protocol
 
-from app.intelligence.schemas import CEODecision, CrisisReport, FinancialState
-
-logger = logging.getLogger(__name__)
+from app.intelligence.schemas import CEODecision, CompanyState, CrisisReport
 
 
 @dataclass(frozen=True)
@@ -21,7 +18,7 @@ class TimelineQuarterRow:
     archetype: str
     crisis: CrisisReport
     decision: CEODecision
-    financial_state: FinancialState
+    company_state: CompanyState
     created_at: str
 
 
@@ -35,7 +32,7 @@ class TimelineStoreProtocol(Protocol):
         archetype: str,
         crisis: CrisisReport,
         decision: CEODecision,
-        financial_state: FinancialState,
+        company_state: CompanyState,
     ) -> None:
         """Persist one quarter record."""
 
@@ -93,7 +90,7 @@ class TimelineStore:
         archetype: str,
         crisis: CrisisReport,
         decision: CEODecision,
-        financial_state: FinancialState,
+        company_state: CompanyState,
     ) -> None:
         """Persist one quarter result."""
 
@@ -119,7 +116,7 @@ class TimelineStore:
                         archetype,
                         json.dumps(crisis.model_dump()),
                         json.dumps(decision.model_dump()),
-                        json.dumps(financial_state.model_dump()),
+                        json.dumps(company_state.model_dump()),
                         created_at,
                     ),
                 )
@@ -144,20 +141,18 @@ class TimelineStore:
         finally:
             conn.close()
 
-        output: list[TimelineQuarterRow] = []
-        for row in rows:
-            output.append(
-                TimelineQuarterRow(
-                    simulation_id=row[0],
-                    quarter=int(row[1]),
-                    archetype=str(row[2]),
-                    crisis=CrisisReport.model_validate_json(row[3]),
-                    decision=CEODecision.model_validate_json(row[4]),
-                    financial_state=FinancialState.model_validate_json(row[5]),
-                    created_at=str(row[6]),
-                )
+        return [
+            TimelineQuarterRow(
+                simulation_id=row[0],
+                quarter=int(row[1]),
+                archetype=str(row[2]),
+                crisis=CrisisReport.model_validate_json(row[3]),
+                decision=CEODecision.model_validate_json(row[4]),
+                company_state=CompanyState.model_validate_json(row[5]),
+                created_at=str(row[6]),
             )
-        return output
+            for row in rows
+        ]
 
     def clear(self) -> None:
         """Delete all timeline records."""
@@ -187,17 +182,15 @@ class TimelineStore:
         finally:
             conn.close()
 
-        output: list[TimelineQuarterRow] = []
-        for row in rows:
-            output.append(
-                TimelineQuarterRow(
-                    simulation_id=row[0],
-                    quarter=int(row[1]),
-                    archetype=str(row[2]),
-                    crisis=CrisisReport.model_validate_json(row[3]),
-                    decision=CEODecision.model_validate_json(row[4]),
-                    financial_state=FinancialState.model_validate_json(row[5]),
-                    created_at=str(row[6]),
-                )
+        return [
+            TimelineQuarterRow(
+                simulation_id=row[0],
+                quarter=int(row[1]),
+                archetype=str(row[2]),
+                crisis=CrisisReport.model_validate_json(row[3]),
+                decision=CEODecision.model_validate_json(row[4]),
+                company_state=CompanyState.model_validate_json(row[5]),
+                created_at=str(row[6]),
             )
-        return output
+            for row in rows
+        ]

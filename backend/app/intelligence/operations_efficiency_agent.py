@@ -1,26 +1,30 @@
-"""Operations efficiency advisory agent for execution stress and cost pressure."""
+"""Innovation/operations advisory agent for execution and cost pressure."""
 
 from dataclasses import dataclass
 
 from app.core.config import CONFIG
-from app.intelligence.schemas import FinancialState, OperationsSignal
+from app.intelligence.schemas import CompanyState, CrisisReport, OperationsSignal
 from app.intelligence.utils import clamp
 
 
 @dataclass
 class OperationsEfficiencyAgent:
-    """Estimates efficiency posture and operational execution pressure."""
+    """Estimates operations resilience and innovation execution pressure."""
 
-    def evaluate(self, financial_state: FinancialState, demand_drop: float) -> OperationsSignal:
+    def evaluate(self, company_state: CompanyState, crisis: CrisisReport) -> OperationsSignal:
         """Produce bounded operations signal and strategy adjustment."""
 
-        burn_to_revenue = clamp(financial_state.burn_rate / max(financial_state.revenue, 1.0))
-        efficiency_score = clamp(1.0 - burn_to_revenue * 2.2)
-        opex_pressure = clamp(burn_to_revenue * 1.9 + demand_drop * 0.8)
-        execution_risk = clamp((opex_pressure * 0.65) + ((1.0 - efficiency_score) * 0.35))
+        efficiency_score = clamp(
+            1.0
+            - company_state.production_cost * 0.55
+            - company_state.supply_chain_risk * 0.30
+            - crisis.manufacturing_cost_spike * 0.20,
+        )
+        opex_pressure = clamp(company_state.production_cost * 0.66 + crisis.manufacturing_cost_spike * 0.34)
+        execution_risk = clamp(company_state.supply_chain_risk * 0.58 + crisis.supply_chain_disruption * 0.42)
 
         adjustment = clamp(
-            efficiency_score * 0.09 - opex_pressure * 0.11,
+            efficiency_score * 0.11 - (opex_pressure * 0.08 + execution_risk * 0.09),
             -CONFIG.support_agents.max_strategy_adjustment,
             CONFIG.support_agents.max_strategy_adjustment,
         )

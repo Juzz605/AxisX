@@ -40,10 +40,10 @@ class ExecutiveMemoryEngine:
 
         updated = profile.model_copy(deep=True)
 
-        if strategy == "Aggressive Expansion" and not outcome_success:
+        if strategy in {"enter_new_market", "invest_in_r_and_d"} and not outcome_success:
             updated.risk_tolerance = clamp(updated.risk_tolerance + CONFIG.strategy.aggressive_loss_risk_delta)
 
-        if strategy == "Defensive Cost Control" and liquidity_delta > 0:
+        if strategy in {"cut_production", "hire_or_layoff_staff"} and liquidity_delta > 0:
             updated.liquidity_priority = clamp(updated.liquidity_priority + CONFIG.strategy.defensive_liquidity_gain_delta)
 
         if outcome_success:

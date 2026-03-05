@@ -1,13 +1,10 @@
-"""PostgreSQL store for quarter-by-quarter simulation timeline records."""
+"""PostgreSQL store for quarter-by-quarter company simulation timeline records."""
 
 import json
-import logging
 from datetime import datetime
 
-from app.intelligence.schemas import CEODecision, CrisisReport, FinancialState
+from app.intelligence.schemas import CEODecision, CompanyState, CrisisReport
 from app.intelligence.timeline_store import TimelineQuarterRow
-
-logger = logging.getLogger(__name__)
 
 
 class PostgresTimelineStore:
@@ -52,10 +49,8 @@ class PostgresTimelineStore:
         archetype: str,
         crisis: CrisisReport,
         decision: CEODecision,
-        financial_state: FinancialState,
+        company_state: CompanyState,
     ) -> None:
-        """Persist one quarter result."""
-
         conn = self._connection_factory()
         try:
             with conn.cursor() as cur:
@@ -77,7 +72,7 @@ class PostgresTimelineStore:
                         archetype,
                         json.dumps(crisis.model_dump()),
                         json.dumps(decision.model_dump()),
-                        json.dumps(financial_state.model_dump()),
+                        json.dumps(company_state.model_dump()),
                         datetime.utcnow(),
                     ),
                 )
@@ -86,8 +81,6 @@ class PostgresTimelineStore:
             conn.close()
 
     def list_by_simulation(self, simulation_id: str) -> list[TimelineQuarterRow]:
-        """Read persisted quarter rows by simulation id."""
-
         conn = self._connection_factory()
         try:
             with conn.cursor() as cur:
@@ -104,24 +97,20 @@ class PostgresTimelineStore:
         finally:
             conn.close()
 
-        output: list[TimelineQuarterRow] = []
-        for row in rows:
-            output.append(
-                TimelineQuarterRow(
-                    simulation_id=row[0],
-                    quarter=int(row[1]),
-                    archetype=str(row[2]),
-                    crisis=CrisisReport.model_validate(row[3]),
-                    decision=CEODecision.model_validate(row[4]),
-                    financial_state=FinancialState.model_validate(row[5]),
-                    created_at=str(row[6]),
-                )
+        return [
+            TimelineQuarterRow(
+                simulation_id=row[0],
+                quarter=int(row[1]),
+                archetype=str(row[2]),
+                crisis=CrisisReport.model_validate(row[3]),
+                decision=CEODecision.model_validate(row[4]),
+                company_state=CompanyState.model_validate(row[5]),
+                created_at=str(row[6]),
             )
-        return output
+            for row in rows
+        ]
 
     def list_recent(self, limit: int = 100) -> list[TimelineQuarterRow]:
-        """Return recent quarter rows across simulations."""
-
         conn = self._connection_factory()
         try:
             with conn.cursor() as cur:
@@ -138,24 +127,20 @@ class PostgresTimelineStore:
         finally:
             conn.close()
 
-        output: list[TimelineQuarterRow] = []
-        for row in rows:
-            output.append(
-                TimelineQuarterRow(
-                    simulation_id=row[0],
-                    quarter=int(row[1]),
-                    archetype=str(row[2]),
-                    crisis=CrisisReport.model_validate(row[3]),
-                    decision=CEODecision.model_validate(row[4]),
-                    financial_state=FinancialState.model_validate(row[5]),
-                    created_at=str(row[6]),
-                )
+        return [
+            TimelineQuarterRow(
+                simulation_id=row[0],
+                quarter=int(row[1]),
+                archetype=str(row[2]),
+                crisis=CrisisReport.model_validate(row[3]),
+                decision=CEODecision.model_validate(row[4]),
+                company_state=CompanyState.model_validate(row[5]),
+                created_at=str(row[6]),
             )
-        return output
+            for row in rows
+        ]
 
     def clear(self) -> None:
-        """Delete all timeline records."""
-
         conn = self._connection_factory()
         try:
             with conn.cursor() as cur:

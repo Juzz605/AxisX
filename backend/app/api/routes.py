@@ -44,7 +44,7 @@ def simulate(
     try:
         return orchestrator.simulate(
             archetype=payload.archetype,
-            financial_state=payload.financial_state,
+            company_state=payload.company_state,
             seed=payload.seed,
             outcome_success=bool(payload.outcome_success) if payload.outcome_success is not None else False,
             liquidity_delta=payload.liquidity_delta if payload.liquidity_delta is not None else 0.0,
@@ -65,7 +65,7 @@ def simulate_timeline(
     try:
         return orchestrator.simulate_timeline(
             archetype=payload.archetype,
-            financial_state=payload.financial_state,
+            company_state=payload.company_state,
             quarters=payload.quarters,
             seed=payload.seed,
         )
@@ -84,7 +84,7 @@ async def start_live_simulation(
 
     session_id = await manager.start_session(
         archetype=payload.archetype,
-        financial_state=payload.financial_state,
+        company_state=payload.company_state,
         tick_seconds=payload.tick_seconds,
         max_quarters=payload.max_quarters,
         seed=payload.seed,

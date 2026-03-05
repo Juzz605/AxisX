@@ -9,7 +9,7 @@ from uuid import uuid4
 import numpy as np
 
 from app.intelligence.orchestrator import AxisXIntelligenceOrchestrator
-from app.intelligence.schemas import CEOProfile, FinancialState, QuarterTimelinePoint
+from app.intelligence.schemas import CEOProfile, CompanyState, QuarterTimelinePoint
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class LiveSession:
     archetype: str
     simulation_id: str
     profile: CEOProfile
-    financial_state: FinancialState
+    company_state: CompanyState
     tick_seconds: float
     max_quarters: int
     seed: int | None
@@ -43,7 +43,7 @@ class LiveSimulationManager:
     async def start_session(
         self,
         archetype: str,
-        financial_state: FinancialState,
+        company_state: CompanyState,
         tick_seconds: float = 1.5,
         max_quarters: int = 30,
         seed: int | None = None,
@@ -59,7 +59,7 @@ class LiveSimulationManager:
             archetype=archetype,
             simulation_id=simulation_id,
             profile=profile,
-            financial_state=financial_state,
+            company_state=company_state,
             tick_seconds=max(0.4, tick_seconds),
             max_quarters=max(1, max_quarters),
             seed=seed,
@@ -131,12 +131,12 @@ class LiveSimulationManager:
                 simulation_id=session.simulation_id,
                 quarter=session.quarter,
                 profile=session.profile,
-                financial_state=session.financial_state,
+                company_state=session.company_state,
                 seed=step_seed,
             )
 
             session.profile = updated_profile
-            session.financial_state = updated_financial
+            session.company_state = updated_financial
 
             payload = {
                 "event": "tick",
@@ -145,7 +145,8 @@ class LiveSimulationManager:
                 "quarter": point.quarter,
                 "crisis": point.crisis.model_dump(),
                 "decision": point.decision.model_dump(),
-                "financial_state": point.financial_state.model_dump(),
+                "company_state": point.company_state.model_dump(),
+                "financial_state": point.company_state.model_dump(),
                 "agent_logs": agent_logs,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
