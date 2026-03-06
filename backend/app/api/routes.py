@@ -86,7 +86,7 @@ async def start_live_simulation(
     payload: LiveSimulationStartRequest,
     manager: LiveSimulationManager = Depends(get_live_simulation_manager),
 ) -> LiveSimulationStartResponse:
-    """Start a continuous synthetic market simulation session."""
+    """Start a continuous industrial manufacturing simulation session."""
 
     session_id = await manager.start_session(
         archetype=payload.archetype,

@@ -1,4 +1,4 @@
-"""Live synthetic market simulation session manager with websocket broadcasting."""
+"""Live industrial simulation session manager with websocket broadcasting."""
 
 import asyncio
 import logging
@@ -33,7 +33,7 @@ class LiveSession:
 
 
 class LiveSimulationManager:
-    """Manages async synthetic market sessions and broadcast events."""
+    """Manages async factory simulation sessions and broadcast events."""
 
     def __init__(self, orchestrator: AxisXIntelligenceOrchestrator) -> None:
         self._orchestrator = orchestrator

@@ -78,7 +78,7 @@ export default function Simulation({
             </button>
           </div>
         </div>
-        <p className="mt-2 text-sm text-textSub">Parallel CEO response comparison under product-economy disruption dynamics.</p>
+        <p className="mt-2 text-sm text-textSub">Parallel CEO response comparison under industrial manufacturing disruption dynamics.</p>
         <p className="mt-2 text-xs uppercase tracking-[0.14em] text-textSub">
           Status: {liveRunning ? 'streaming live company quarters' : 'idle'}
         </p>

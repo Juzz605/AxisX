@@ -49,17 +49,17 @@ function ProductCard({ product }: { product: ProductPerformance }) {
 
       <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
         <div className="rounded border border-border bg-bg px-2 py-1.5">
-          <p className="text-textSub">Monthly Sold</p>
+          <p className="text-textSub">Monthly Output</p>
           <p className="mt-1 font-semibold">{product.monthly_units_sold.toLocaleString()}</p>
         </div>
         <div className="rounded border border-border bg-bg px-2 py-1.5">
-          <p className="text-textSub">YTD Sold</p>
+          <p className="text-textSub">YTD Output</p>
           <p className="mt-1 font-semibold">{product.yearly_units_sold.toLocaleString()}</p>
         </div>
       </div>
 
-      <p className="mt-3 text-xs text-textSub">Why they buy: {product.why_customers_buy}</p>
-      <p className="mt-2 text-xs text-textSub">Top color: {product.primary_color}</p>
+      <p className="mt-3 text-xs text-textSub">Why OEMs order: {product.why_customers_buy}</p>
+      <p className="mt-2 text-xs text-textSub">Top variant: {product.primary_color}</p>
     </article>
   );
 }
@@ -95,10 +95,10 @@ export default function CompanyGrowthDashboard({
     <section className="space-y-4 rounded-xl border border-border bg-panel p-5 shadow-glow">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h3 className="text-2xl font-semibold text-textMain">Apple Product Growth Dashboard</h3>
-          <p className="mt-1 text-xs uppercase tracking-[0.12em] text-textSub">Demand Forecasting • Inventory Optimization • Dynamic Supply Chain</p>
+          <h3 className="text-2xl font-semibold text-textMain">Industrial Component Manufacturing Dashboard</h3>
+          <p className="mt-1 text-xs uppercase tracking-[0.12em] text-textSub">Demand Forecasting • Capacity Optimization • Dynamic Supply Chain</p>
         </div>
-        <span className="rounded-md border border-border bg-panel2 px-3 py-1 text-xs text-textSub">Company Twin</span>
+        <span className="rounded-md border border-border bg-panel2 px-3 py-1 text-xs text-textSub">Factory Twin</span>
       </div>
 
       <div className="grid gap-2 md:grid-cols-4">
@@ -109,11 +109,11 @@ export default function CompanyGrowthDashboard({
       </div>
 
       <div className="rounded-lg border border-border bg-panel2 p-3">
-        <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-textSub">Current Top Seller</h4>
+        <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-textSub">Current Top Manufactured Component</h4>
         {topProduct ? (
           <div className="mt-2 grid gap-2 md:grid-cols-4">
             <Kpi label="Product" value={topProduct.product} />
-            <Kpi label="Units Sold" value={topProduct.monthly_units_sold.toLocaleString()} />
+            <Kpi label="Units Produced" value={topProduct.monthly_units_sold.toLocaleString()} />
             <Kpi label="Top Color" value={topProduct.primary_color} />
             <Kpi label="Reason" value={topProduct.why_customers_buy} />
           </div>
@@ -128,7 +128,7 @@ export default function CompanyGrowthDashboard({
 
       <div className="grid gap-4 xl:grid-cols-2">
         <div className="rounded-lg border border-border bg-panel p-3">
-          <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-textSub">Product Portfolio Performance</h4>
+          <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-textSub">Component Line Performance</h4>
           <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {products.map((p) => (
               <ProductCard key={p.product} product={p} />
@@ -152,17 +152,17 @@ export default function CompanyGrowthDashboard({
 
           <div className="rounded-lg border border-border bg-panel2 p-3">
             <div className="flex items-center justify-between gap-2">
-              <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-textSub">Saved Product Pattern (MongoDB)</h4>
+              <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-textSub">Saved Manufacturing Pattern (MongoDB/PostgreSQL)</h4>
               <span className="text-xs text-textSub">${Math.round(telemetryRevenue).toLocaleString()} tracked</span>
             </div>
             <div className="mt-2 max-h-40 space-y-1 overflow-y-auto">
               {recentTelemetry.length === 0 ? (
-                <p className="text-xs text-textSub">No persisted product telemetry yet.</p>
+                <p className="text-xs text-textSub">No persisted manufacturing telemetry yet.</p>
               ) : (
                 recentTelemetry.map((row, idx) => (
                   <div key={`${row.timestamp}-${row.product}-${idx}`} className="rounded border border-border bg-bg px-2 py-1.5 text-xs">
                     <span className="font-semibold text-textMain">{row.product}</span>
-                    <span className="text-textSub"> • {row.monthly_units_sold.toLocaleString()} units • </span>
+                    <span className="text-textSub"> • {row.monthly_units_sold.toLocaleString()} units produced • </span>
                     <span className="text-textMain">${Math.round(row.revenue).toLocaleString()}</span>
                   </div>
                 ))

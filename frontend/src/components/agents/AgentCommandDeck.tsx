@@ -33,7 +33,7 @@ export default function AgentCommandDeck({
   return (
     <section className="rounded-xl border border-border bg-panel p-5 shadow-glow">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-textSub">AI Agent Command Deck</h3>
+        <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-textSub">AI Manufacturing Agent Deck</h3>
         <span className="rounded-md border border-border bg-panel2 px-2.5 py-1 text-[11px] uppercase tracking-[0.12em] text-textSub">
           {liveRunning ? 'Live Quarter Stream Active' : 'Awaiting Quarter Trigger'}
         </span>
@@ -41,14 +41,14 @@ export default function AgentCommandDeck({
 
       <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <AgentCard
-          name="Crisis Monitoring Agent"
-          role="Macro shock synthesis"
+          name="Crisis Agent"
+          role="Manufacturing risk detection"
           accent="amber"
           signal={crisis?.severity_index}
           activity={
             crisis
-              ? `Synthesizing business disruption: ${crisis.disruption_event}. Severity ${num(crisis.severity_index)}.`
-              : 'Idle. Waiting for a quarterly cycle to map disruption vectors.'
+              ? `Detecting plant disruption: ${crisis.disruption_event}. Severity ${num(crisis.severity_index)}.`
+              : 'Idle. Waiting for next cycle to map raw-material and supply risk vectors.'
           }
           primaryMetrics={[
             { label: 'Supply Chain', value: pct(crisis?.supply_chain_disruption) },
@@ -59,14 +59,14 @@ export default function AgentCommandDeck({
         />
 
         <AgentCard
-          name="CEO Archetype Agent"
-          role="Strategic decision"
+          name="CEO Agent"
+          role="Factory orchestration"
           accent="blue"
           signal={decision?.strategy_index}
           activity={
             decision
-              ? `Selecting ${decision.strategy} from growth/stability differential with bounded stochastic variance.`
-              : 'Idle. Waiting for disruption context and company state to produce a strategic action.'
+              ? `Selecting ${decision.strategy} based on demand, risk, and factory-capacity tradeoffs.`
+              : 'Idle. Waiting for disruption context and factory state to issue production guidance.'
           }
           primaryMetrics={[
             { label: 'Strategy', value: decision?.strategy ?? 'n/a' },
@@ -77,14 +77,14 @@ export default function AgentCommandDeck({
         />
 
         <AgentCard
-          name="Market Intelligence Agent"
-          role="Momentum and volatility"
+          name="Market Analysis Agent"
+          role="Component demand intelligence"
           accent="cyan"
           signal={support?.market_sentiment.adjustment}
           activity={
             support
-              ? 'Quantifying directional sentiment and volatility drag to shape executive aggression.'
-              : 'Idle. Awaiting crisis profile and balance-sheet context.'
+              ? 'Estimating near-term component demand momentum to recommend which lines to scale.'
+              : 'Idle. Awaiting crisis profile and order-book context.'
           }
           primaryMetrics={[
             { label: 'Sentiment', value: num(support?.market_sentiment.sentiment_score) },
@@ -95,14 +95,14 @@ export default function AgentCommandDeck({
         />
 
         <AgentCard
-          name="Innovation Strategy Agent"
-          role="Transformation and execution"
+          name="Decision Engine Agent"
+          role="Production strategy synthesis"
           accent="emerald"
           signal={support?.operations.adjustment}
           activity={
             support
-              ? 'Analyzing innovation-pressure tradeoffs to rebalance transformation speed versus operating risk.'
-              : 'Idle. Awaiting innovation and execution telemetry.'
+              ? 'Combining demand, operational efficiency, and risk to reallocate factory resources.'
+              : 'Idle. Awaiting execution and capacity telemetry.'
           }
           primaryMetrics={[
             { label: 'Efficiency', value: pct(support?.operations.efficiency_score) },
@@ -113,20 +113,20 @@ export default function AgentCommandDeck({
         />
 
         <AgentCard
-          name="Finance & Treasury Agent"
-          role="Runway and refinance"
+          name="Reporting Agent"
+          role="Operational dashboard and outputs"
           accent="slate"
           signal={support?.treasury.adjustment}
           activity={
             support
-              ? `Protecting runway under stress with liquidity-first correction pressure. Dominant driver: ${support.dominant_driver}.`
-              : 'Idle. Awaiting liquidity data to estimate treasury fragility.'
+              ? `Publishing production-readiness and resilience signals. Dominant driver: ${support.dominant_driver}.`
+              : 'Idle. Awaiting KPI streams to build recommendation reports.'
           }
           primaryMetrics={[
-            { label: 'Liquidity Health', value: pct(support?.treasury.liquidity_health) },
+            { label: 'Readiness', value: pct(support?.treasury.liquidity_health) },
             { label: 'Runway Pressure', value: pct(support?.treasury.runway_pressure) },
-            { label: 'Refinance Risk', value: pct(support?.treasury.refinancing_risk) },
-            { label: 'Aggregate Adj', value: num(support?.aggregate_adjustment) }
+            { label: 'Supply Risk', value: pct(support?.treasury.refinancing_risk) },
+            { label: 'Report Delta', value: num(support?.aggregate_adjustment) }
           ]}
         />
       </div>

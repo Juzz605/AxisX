@@ -1,4 +1,4 @@
-"""Orchestration layer for multi-agent product/company strategy simulation."""
+"""Orchestration layer for multi-agent industrial manufacturing simulation."""
 
 import logging
 from uuid import uuid4
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class AxisXIntelligenceOrchestrator:
-    """Runs single-step and multi-quarter company strategy cycles."""
+    """Runs single-step and multi-quarter factory strategy cycles."""
 
     def __init__(self, memory_engine: ExecutiveMemoryEngine, timeline_store: TimelineStoreProtocol) -> None:
         self._memory_engine = memory_engine
@@ -308,18 +308,18 @@ class AxisXIntelligenceOrchestrator:
         company_state: CompanyState,
         seed: int | None = None,
     ) -> tuple[QuarterTimelinePoint, CEOProfile, CompanyState, list[str]]:
-        """Execute one live quarter with explicit AI agent logs."""
+        """Execute one live quarter with explicit manufacturing AI agent logs."""
 
         crisis_agent = CrisisIntelligenceAgent(seed=seed)
         decision_engine = ExecutiveDecisionEngine(seed=seed)
 
         agent_logs: list[str] = [
-            f"[Crisis Monitoring Agent] Q{quarter}: scanning product economy risk for {archetype}.",
+            f"[Crisis Agent] Q{quarter}: scanning factory risk vectors for {archetype}.",
         ]
 
         crisis = crisis_agent.generate_crisis_report()
         agent_logs.append(
-            "[Crisis Monitoring Agent] "
+            "[Crisis Agent] "
             f"event={crisis.disruption_event}, severity={crisis.severity_index:.3f}, "
             f"demand_drop={crisis.demand_drop_intensity:.3f}, supply_chain={crisis.supply_chain_disruption:.3f}."
         )
@@ -372,20 +372,20 @@ class AxisXIntelligenceOrchestrator:
 
         support = decision.support_signals
         agent_logs.append(
-            "[CEO Archetype Agent] "
-            f"strategy={decision.strategy}, index={strategy_index:.4f}, revenue={quarter_metrics.revenue:.2f}, market_share={quarter_metrics.market_share:.3f}."
+            "[CEO Agent] "
+            f"strategy={decision.strategy}, index={strategy_index:.4f}, output_revenue={quarter_metrics.revenue:.2f}, market_share={quarter_metrics.market_share:.3f}."
         )
         if support is not None:
             agent_logs.append(
-                "[Market Intelligence Agent] "
+                "[Market Analysis Agent] "
                 f"sentiment={support.market_sentiment.sentiment_score:.3f}, momentum={support.market_sentiment.momentum_signal:.3f}, adj={support.market_sentiment.adjustment:.3f}."
             )
             agent_logs.append(
-                "[Innovation Strategy Agent] "
+                "[Decision Engine Agent] "
                 f"efficiency={support.operations.efficiency_score:.3f}, execution_risk={support.operations.execution_risk:.3f}, adj={support.operations.adjustment:.3f}."
             )
             agent_logs.append(
-                "[Finance & Treasury Agent] "
+                "[Reporting Agent] "
                 f"liquidity_health={support.treasury.liquidity_health:.3f}, runway_pressure={support.treasury.runway_pressure:.3f}, adj={support.treasury.adjustment:.3f}."
             )
 

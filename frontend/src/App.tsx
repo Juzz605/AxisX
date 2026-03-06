@@ -80,81 +80,81 @@ function updateCompanyState(current: CompanyState, decision: CEODecision): Compa
 function initialProducts(): ProductPerformance[] {
   return [
     {
-      product: 'iPhone',
+      product: 'EV Battery Module',
       monthly_units_sold: 6800,
       yearly_units_sold: 7400,
       inventory_utilization: 0.62,
       production_focus: 'increase',
-      primary_color: 'Midnight',
-      color_mix: { Midnight: 34, Starlight: 22, Blue: 17, Red: 12, Pink: 15 },
-      why_customers_buy: 'Camera upgrade + premium ecosystem lock-in',
-      buying_window: 'Launch season and festive quarter'
+      primary_color: 'Graphite',
+      color_mix: { Graphite: 41, Silver: 23, Black: 19, Blue: 9, Red: 8 },
+      why_customers_buy: 'High EV order pipeline and stable contract margins',
+      buying_window: 'Quarterly EV platform procurement cycles'
     },
     {
-      product: 'AirPods',
+      product: 'Power Control PCB',
       monthly_units_sold: 4900,
       yearly_units_sold: 5300,
       inventory_utilization: 0.59,
       production_focus: 'hold',
-      primary_color: 'White',
-      color_mix: { White: 84, Black: 8, Green: 4, Purple: 4 },
-      why_customers_buy: 'Convenience + bundled ecosystem',
-      buying_window: 'Holiday gifting spikes'
+      primary_color: 'Green',
+      color_mix: { Green: 46, Black: 26, Blue: 14, Red: 8, Yellow: 6 },
+      why_customers_buy: 'Strong demand from industrial automation OEM lines',
+      buying_window: 'Continuous replenishment for control systems'
     },
     {
-      product: 'iPad',
+      product: 'Thermal Heat Sink',
       monthly_units_sold: 3400,
       yearly_units_sold: 3900,
       inventory_utilization: 0.55,
       production_focus: 'hold',
       primary_color: 'Silver',
-      color_mix: { Silver: 35, SpaceGray: 40, Blue: 15, Purple: 10 },
-      why_customers_buy: 'Education + content consumption',
-      buying_window: 'Back-to-school and semester starts'
+      color_mix: { Silver: 53, Graphite: 21, Black: 15, Blue: 11 },
+      why_customers_buy: 'Thermal compliance requirements in high-load hardware',
+      buying_window: 'High-temperature season and data-center expansions'
     },
     {
-      product: 'iMac',
+      product: 'Motor Drive Unit',
       monthly_units_sold: 1400,
       yearly_units_sold: 1700,
       inventory_utilization: 0.49,
       production_focus: 'reduce',
-      primary_color: 'Blue',
-      color_mix: { Blue: 31, Green: 18, Pink: 15, Silver: 24, Yellow: 12 },
-      why_customers_buy: 'Design-heavy workspace preference',
-      buying_window: 'Q4 enterprise refresh cycles'
+      primary_color: 'Black',
+      color_mix: { Black: 44, Silver: 30, Blue: 14, Red: 12 },
+      why_customers_buy: 'Project-based robotics orders with cyclical demand',
+      buying_window: 'Factory capex refresh windows'
     },
     {
-      product: 'MacBook Air',
+      product: 'Laptop Motherboard',
       monthly_units_sold: 4300,
       yearly_units_sold: 5100,
       inventory_utilization: 0.58,
       production_focus: 'increase',
-      primary_color: 'Space Gray',
-      color_mix: { SpaceGray: 38, Silver: 29, Midnight: 23, Starlight: 10 },
-      why_customers_buy: 'Student demand + portability',
-      buying_window: 'Back-to-school and exam prep months'
+      primary_color: 'Graphite',
+      color_mix: { Graphite: 49, Green: 20, Black: 17, Blue: 14 },
+      why_customers_buy: 'Enterprise laptop assembly demand remains resilient',
+      buying_window: 'Back-to-work and enterprise procurement quarters'
     },
     {
-      product: 'Apple Watch',
+      product: 'Sensor Harness',
       monthly_units_sold: 2800,
       yearly_units_sold: 3200,
       inventory_utilization: 0.53,
       production_focus: 'hold',
-      primary_color: 'Black',
-      color_mix: { Black: 44, Silver: 24, Blue: 14, Red: 8, Pink: 10 },
-      why_customers_buy: 'Health monitoring and fitness trends',
-      buying_window: 'New Year fitness cycle'
+      primary_color: 'Orange',
+      color_mix: { Orange: 36, Black: 31, Yellow: 17, Blue: 9, Red: 7 },
+      why_customers_buy: 'Automotive ADAS integration demand is rising',
+      buying_window: 'Vehicle model rollout cycles'
     }
   ];
 }
 
 function initialInsight(): CustomerDemandInsight {
   return {
-    top_reason: 'Camera + ecosystem continuity',
-    top_segment: 'Students and young professionals',
-    top_region: 'India Urban + US Coastal',
-    top_color_preference: 'Midnight',
-    seasonal_driver: 'Back-to-school season and flagship launch quarter'
+    top_reason: 'OEM pre-orders and contract renewals',
+    top_segment: 'Automotive and electronics OEM buyers',
+    top_region: 'India manufacturing clusters + Southeast Asia',
+    top_color_preference: 'Graphite',
+    seasonal_driver: 'Quarterly procurement cycles and export lead windows'
   };
 }
 
@@ -175,8 +175,8 @@ function derivePlan(archetype: Archetype, decision: CEODecision, products: Produ
     product_to_reduce,
     rationale:
       archetype === 'VisionaryInnovator'
-        ? 'Prioritize growth SKUs, attach premium features, and accelerate launch cadence where demand momentum is highest.'
-        : 'Protect cash by trimming weak inventory lines and scaling only proven products with stable conversion.'
+        ? 'Prioritize high-demand components, accelerate tooling utilization, and expand lines with strong OEM pull.'
+        : 'Protect cash by trimming weak component batches and scaling only stable, high-yield production lines.'
   };
 }
 
@@ -246,17 +246,17 @@ export default function App() {
   const [productTelemetry, setProductTelemetry] = useState<ProductTelemetryRecord[]>([]);
   const [visionaryPlan, setVisionaryPlan] = useState<CEOProductPlan>({
     archetype: 'VisionaryInnovator',
-    product_to_market: 'iPhone',
-    product_to_scale: 'MacBook Air',
-    product_to_reduce: 'iMac',
-    rationale: 'Launch-focused growth plan.'
+    product_to_market: 'EV Battery Module',
+    product_to_scale: 'Laptop Motherboard',
+    product_to_reduce: 'Motor Drive Unit',
+    rationale: 'Demand-driven industrial growth plan.'
   });
   const [conservativePlan, setConservativePlan] = useState<CEOProductPlan>({
     archetype: 'ConservativeStabilizer',
-    product_to_market: 'AirPods',
-    product_to_scale: 'iPhone',
-    product_to_reduce: 'iMac',
-    rationale: 'Efficiency-focused allocation plan.'
+    product_to_market: 'Power Control PCB',
+    product_to_scale: 'EV Battery Module',
+    product_to_reduce: 'Motor Drive Unit',
+    rationale: 'Efficiency-focused factory allocation plan.'
   });
 
   const [visionaryCapital, setVisionaryCapital] = useState<number>(INITIAL_CEO_CAPITAL);
@@ -348,13 +348,13 @@ export default function App() {
         const topProduct = [...updated].sort((a, b) => b.monthly_units_sold - a.monthly_units_sold)[0];
         setCustomerInsight({
           top_reason: topProduct?.why_customers_buy ?? 'Price-performance balance',
-          top_segment: nextState.product_demand > 0.62 ? 'Students + creators' : 'Mainstream family buyers',
-          top_region: nextState.marketing_effectiveness > 0.6 ? 'India metros + US urban hubs' : 'Mixed global urban cluster',
-          top_color_preference: topProduct?.primary_color ?? 'Midnight',
+          top_segment: nextState.product_demand > 0.62 ? 'High-volume OEM assembly partners' : 'Regional industrial buyers',
+          top_region: nextState.marketing_effectiveness > 0.6 ? 'India + ASEAN industrial corridors' : 'Mixed export corridors',
+          top_color_preference: topProduct?.primary_color ?? 'Graphite',
           seasonal_driver:
             nextState.product_demand > 0.64
-              ? 'Back-to-school demand and flagship cycle'
-              : 'Holiday gifting and replacement purchases'
+              ? 'Large OEM procurement wave and tender season'
+              : 'Steady replacement and contract balancing cycle'
         });
         return updated;
       });
@@ -443,12 +443,12 @@ export default function App() {
       applyQuarterUpdate('ConservativeStabilizer', conservativeRes.ceo_decision, conservativeRes.crisis_report, updateCompanyState(companyState, conservativeRes.ceo_decision), now, timeline.length + 1);
 
       appendLogs([
-        `[Crisis Monitoring Agent] event=${visionaryRes.crisis_report.disruption_event}, severity=${visionaryRes.crisis_report.severity_index.toFixed(3)}.`,
-        `[CEO Archetype Agent] visionary strategy=${visionaryRes.ceo_decision.strategy}.`,
-        `[CEO Archetype Agent] conservative strategy=${conservativeRes.ceo_decision.strategy}.`,
-        `[Market Intelligence Agent] customer_signal=${visionaryRes.ceo_decision.support_signals?.market_sentiment.momentum_signal.toFixed(3) ?? 'n/a'}.`,
-        `[Innovation Strategy Agent] execution_risk=${visionaryRes.ceo_decision.support_signals?.operations.execution_risk.toFixed(3) ?? 'n/a'}.`,
-        `[Finance & Treasury Agent] liquidity_health=${visionaryRes.ceo_decision.support_signals?.treasury.liquidity_health.toFixed(3) ?? 'n/a'}.`
+        `[Crisis Agent] event=${visionaryRes.crisis_report.disruption_event}, severity=${visionaryRes.crisis_report.severity_index.toFixed(3)}.`,
+        `[CEO Agent] visionary production strategy=${visionaryRes.ceo_decision.strategy}.`,
+        `[CEO Agent] conservative production strategy=${conservativeRes.ceo_decision.strategy}.`,
+        `[Market Analysis Agent] demand_signal=${visionaryRes.ceo_decision.support_signals?.market_sentiment.momentum_signal.toFixed(3) ?? 'n/a'}.`,
+        `[Decision Engine Agent] execution_risk=${visionaryRes.ceo_decision.support_signals?.operations.execution_risk.toFixed(3) ?? 'n/a'}.`,
+        `[Reporting Agent] liquidity_health=${visionaryRes.ceo_decision.support_signals?.treasury.liquidity_health.toFixed(3) ?? 'n/a'}.`
       ]);
 
       await hydrateBackendData();

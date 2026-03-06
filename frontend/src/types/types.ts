@@ -204,7 +204,13 @@ export interface CompanyRevenuePoint {
 }
 
 export interface ProductPerformance {
-  product: 'iPhone' | 'AirPods' | 'iPad' | 'iMac' | 'MacBook Air' | 'Apple Watch';
+  product:
+    | 'EV Battery Module'
+    | 'Power Control PCB'
+    | 'Thermal Heat Sink'
+    | 'Motor Drive Unit'
+    | 'Laptop Motherboard'
+    | 'Sensor Harness';
   monthly_units_sold: number;
   yearly_units_sold: number;
   inventory_utilization: number;
