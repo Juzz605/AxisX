@@ -61,6 +61,61 @@ function ProductCard({ product }: { product: ProductPerformance }) {
   );
 }
 
+function AgentActionsPanel({
+  product,
+  latestDemand,
+  latestTelemetryRevenue
+}: {
+  product: ProductPerformance;
+  latestDemand: number;
+  latestTelemetryRevenue: number;
+}) {
+  const demandState = latestDemand >= 0.62 ? 'high-demand mode' : 'balanced-demand mode';
+  const focusLine =
+    product.production_focus === 'increase'
+      ? 'Scale output by adding one more calibrated shift this cycle.'
+      : product.production_focus === 'reduce'
+        ? 'Reduce output to protect inventory health and avoid overrun.'
+        : 'Hold output steady and optimize yield per batch.';
+
+  return (
+    <article className="rounded-lg border border-border bg-panel2 p-3">
+      <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-textSub">EV Battery Agent Actions</h4>
+      <div className="mt-3 space-y-2 text-xs">
+        <div className="rounded border border-border bg-bg px-2 py-1.5">
+          <p className="font-semibold text-textMain">CEO Agent</p>
+          <p className="mt-1 text-textSub">{focusLine}</p>
+        </div>
+        <div className="rounded border border-border bg-bg px-2 py-1.5">
+          <p className="font-semibold text-textMain">Market Analysis Agent</p>
+          <p className="mt-1 text-textSub">
+            Tracks OEM order signals and flags {demandState} for EV Battery Module procurement.
+          </p>
+        </div>
+        <div className="rounded border border-border bg-bg px-2 py-1.5">
+          <p className="font-semibold text-textMain">Crisis Agent</p>
+          <p className="mt-1 text-textSub">
+            Monitors lithium/cell-material risk and sudden order spikes impacting battery-line continuity.
+          </p>
+        </div>
+        <div className="rounded border border-border bg-bg px-2 py-1.5">
+          <p className="font-semibold text-textMain">Decision Engine Agent</p>
+          <p className="mt-1 text-textSub">
+            Reallocates capacity between assembly, testing, and pack-out to stabilize margins and throughput.
+          </p>
+        </div>
+        <div className="rounded border border-border bg-bg px-2 py-1.5">
+          <p className="font-semibold text-textMain">Reporting Agent</p>
+          <p className="mt-1 text-textSub">
+            Publishes live output ({product.monthly_units_sold.toLocaleString()} units) and tracked revenue ($
+            {Math.round(latestTelemetryRevenue).toLocaleString()}).
+          </p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function CompanyGrowthDashboard({
   revenueTimeline,
   products,
@@ -112,10 +167,15 @@ export default function CompanyGrowthDashboard({
       <div className="grid gap-4 xl:grid-cols-2">
         <div className="rounded-lg border border-border bg-panel p-3">
           <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-textSub">Component Line Performance</h4>
-          <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {products.map((p) => (
-              <ProductCard key={p.product} product={p} />
-            ))}
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            {topProduct ? <ProductCard product={topProduct} /> : null}
+            {topProduct ? (
+              <AgentActionsPanel
+                product={topProduct}
+                latestDemand={latest?.market_share ?? 0.5}
+                latestTelemetryRevenue={telemetryRevenue}
+              />
+            ) : null}
           </div>
         </div>
 
