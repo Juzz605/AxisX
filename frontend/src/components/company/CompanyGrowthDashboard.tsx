@@ -164,10 +164,10 @@ export default function CompanyGrowthDashboard({
         <RevenueGrowthChart points={revenueTimeline} />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-3 xl:grid-cols-[1.2fr_1fr]">
         <div className="rounded-lg border border-border bg-panel p-3">
           <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-textSub">Component Line Performance</h4>
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <div className="mt-3 grid gap-3 lg:grid-cols-2">
             {topProduct ? <ProductCard product={topProduct} /> : null}
             {topProduct ? (
               <AgentActionsPanel

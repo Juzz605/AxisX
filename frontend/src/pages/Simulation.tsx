@@ -109,16 +109,6 @@ export default function Simulation({
             </p>
           </div>
         </div>
-        <div className="mt-3 grid gap-3 md:grid-cols-2">
-          <div className="rounded-md border border-success/40 bg-success/15 p-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-success">Pros</p>
-            <p className="mt-1 text-xs text-textMain">Unified decision path simplifies execution and keeps production shifts steady.</p>
-          </div>
-          <div className="rounded-md border border-warning/40 bg-warning/15 p-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-warning">Cons</p>
-            <p className="mt-1 text-xs text-textMain">Single-agent orchestration has less strategy diversity than dual-archetype comparisons.</p>
-          </div>
-        </div>
       </section>
 
       <CompanyGrowthDashboard

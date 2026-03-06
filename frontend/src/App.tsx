@@ -465,7 +465,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-bg text-textMain">
       <Navbar />
-      <main className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6">
+      <main className="mx-auto w-full max-w-none px-3 py-5 md:px-5">
         <div className="mb-4 flex min-h-8 items-center justify-between">
           {loading ? <LoadingSpinner /> : <span className="text-xs uppercase tracking-[0.14em] text-textSub">Ready</span>}
           <span className="text-xs uppercase tracking-[0.14em] text-textSub">{location.pathname}</span>
