@@ -204,13 +204,7 @@ export interface CompanyRevenuePoint {
 }
 
 export interface ProductPerformance {
-  product:
-    | 'EV Battery Module'
-    | 'Power Control PCB'
-    | 'Thermal Heat Sink'
-    | 'Motor Drive Unit'
-    | 'Laptop Motherboard'
-    | 'Sensor Harness';
+  product: 'EV Battery Module';
   monthly_units_sold: number;
   yearly_units_sold: number;
   inventory_utilization: number;

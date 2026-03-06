@@ -1,5 +1,4 @@
 import type {
-  CEOProductPlan,
   CompanyRevenuePoint,
   CustomerDemandInsight,
   ProductPerformance,
@@ -11,8 +10,6 @@ interface CompanyGrowthDashboardProps {
   revenueTimeline: CompanyRevenuePoint[];
   products: ProductPerformance[];
   insight: CustomerDemandInsight;
-  visionaryPlan: CEOProductPlan;
-  conservativePlan: CEOProductPlan;
   cashReservePct: number;
   telemetry: ProductTelemetryRecord[];
 }
@@ -64,24 +61,10 @@ function ProductCard({ product }: { product: ProductPerformance }) {
   );
 }
 
-function PlanCard({ title, plan }: { title: string; plan: CEOProductPlan }) {
-  return (
-    <article className="rounded-lg border border-border bg-panel2 p-3">
-      <h4 className="text-sm font-semibold text-textMain">{title}</h4>
-      <p className="mt-2 text-xs text-textSub">Market this quarter: {plan.product_to_market}</p>
-      <p className="mt-1 text-xs text-textSub">Scale production: {plan.product_to_scale}</p>
-      <p className="mt-1 text-xs text-textSub">Reduce spend: {plan.product_to_reduce}</p>
-      <p className="mt-2 text-xs text-textMain">{plan.rationale}</p>
-    </article>
-  );
-}
-
 export default function CompanyGrowthDashboard({
   revenueTimeline,
   products,
   insight,
-  visionaryPlan,
-  conservativePlan,
   cashReservePct,
   telemetry
 }: CompanyGrowthDashboardProps) {
@@ -145,11 +128,6 @@ export default function CompanyGrowthDashboard({
             <Kpi label="Top Color" value={insight.top_color_preference} />
           </div>
           <p className="text-xs text-textSub">Seasonal driver: {insight.seasonal_driver}</p>
-          <div className="grid gap-2 md:grid-cols-2">
-            <PlanCard title="Visionary CEO Plan" plan={visionaryPlan} />
-            <PlanCard title="Conservative CEO Plan" plan={conservativePlan} />
-          </div>
-
           <div className="rounded-lg border border-border bg-panel2 p-3">
             <div className="flex items-center justify-between gap-2">
               <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-textSub">Saved Manufacturing Pattern (MongoDB/PostgreSQL)</h4>

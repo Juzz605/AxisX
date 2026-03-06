@@ -1,21 +1,17 @@
 import MetricCard from '../components/MetricCard';
 import SimulationControls from '../components/SimulationControls';
-import type { Archetype, CompanyState } from '../types/types';
+import type { CompanyState } from '../types/types';
 
 interface DashboardProps {
-  selectedArchetype: Archetype;
   companyState: CompanyState;
   loading: boolean;
-  onArchetypeChange: (archetype: Archetype) => void;
   onSimulate: () => Promise<void>;
   onReset: () => Promise<void>;
 }
 
 export default function Dashboard({
-  selectedArchetype,
   companyState,
   loading,
-  onArchetypeChange,
   onSimulate,
   onReset
 }: DashboardProps) {
@@ -43,8 +39,6 @@ export default function Dashboard({
       </section>
 
       <SimulationControls
-        selectedArchetype={selectedArchetype}
-        onArchetypeChange={onArchetypeChange}
         onSimulate={onSimulate}
         onReset={onReset}
         loading={loading}

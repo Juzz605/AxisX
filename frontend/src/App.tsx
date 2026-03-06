@@ -20,7 +20,6 @@ import type {
   ApiError,
   Archetype,
   CEODecision,
-  CEOProductPlan,
   CompanyRevenuePoint,
   CompanyState,
   CrisisReport,
@@ -89,61 +88,6 @@ function initialProducts(): ProductPerformance[] {
       color_mix: { Graphite: 41, Silver: 23, Black: 19, Blue: 9, Red: 8 },
       why_customers_buy: 'High EV order pipeline and stable contract margins',
       buying_window: 'Quarterly EV platform procurement cycles'
-    },
-    {
-      product: 'Power Control PCB',
-      monthly_units_sold: 4900,
-      yearly_units_sold: 5300,
-      inventory_utilization: 0.59,
-      production_focus: 'hold',
-      primary_color: 'Green',
-      color_mix: { Green: 46, Black: 26, Blue: 14, Red: 8, Yellow: 6 },
-      why_customers_buy: 'Strong demand from industrial automation OEM lines',
-      buying_window: 'Continuous replenishment for control systems'
-    },
-    {
-      product: 'Thermal Heat Sink',
-      monthly_units_sold: 3400,
-      yearly_units_sold: 3900,
-      inventory_utilization: 0.55,
-      production_focus: 'hold',
-      primary_color: 'Silver',
-      color_mix: { Silver: 53, Graphite: 21, Black: 15, Blue: 11 },
-      why_customers_buy: 'Thermal compliance requirements in high-load hardware',
-      buying_window: 'High-temperature season and data-center expansions'
-    },
-    {
-      product: 'Motor Drive Unit',
-      monthly_units_sold: 1400,
-      yearly_units_sold: 1700,
-      inventory_utilization: 0.49,
-      production_focus: 'reduce',
-      primary_color: 'Black',
-      color_mix: { Black: 44, Silver: 30, Blue: 14, Red: 12 },
-      why_customers_buy: 'Project-based robotics orders with cyclical demand',
-      buying_window: 'Factory capex refresh windows'
-    },
-    {
-      product: 'Laptop Motherboard',
-      monthly_units_sold: 4300,
-      yearly_units_sold: 5100,
-      inventory_utilization: 0.58,
-      production_focus: 'increase',
-      primary_color: 'Graphite',
-      color_mix: { Graphite: 49, Green: 20, Black: 17, Blue: 14 },
-      why_customers_buy: 'Enterprise laptop assembly demand remains resilient',
-      buying_window: 'Back-to-work and enterprise procurement quarters'
-    },
-    {
-      product: 'Sensor Harness',
-      monthly_units_sold: 2800,
-      yearly_units_sold: 3200,
-      inventory_utilization: 0.53,
-      production_focus: 'hold',
-      primary_color: 'Orange',
-      color_mix: { Orange: 36, Black: 31, Yellow: 17, Blue: 9, Red: 7 },
-      why_customers_buy: 'Automotive ADAS integration demand is rising',
-      buying_window: 'Vehicle model rollout cycles'
     }
   ];
 }
@@ -158,42 +102,20 @@ function initialInsight(): CustomerDemandInsight {
   };
 }
 
-function derivePlan(archetype: Archetype, decision: CEODecision, products: ProductPerformance[]): CEOProductPlan {
-  const sortedByDemand = [...products].sort((a, b) => b.monthly_units_sold - a.monthly_units_sold);
-  const sortedByInventory = [...products].sort((a, b) => a.inventory_utilization - b.inventory_utilization);
-
-  const product_to_market = decision.strategy === 'increase_marketing' ? sortedByDemand[0].product : sortedByDemand[1].product;
-  const product_to_scale = decision.strategy === 'enter_new_market' || decision.strategy === 'invest_in_r_and_d'
-    ? sortedByDemand[0].product
-    : sortedByDemand[2].product;
-  const product_to_reduce = sortedByInventory[0].product;
-
-  return {
-    archetype,
-    product_to_market,
-    product_to_scale,
-    product_to_reduce,
-    rationale:
-      archetype === 'VisionaryInnovator'
-        ? 'Prioritize high-demand components, accelerate tooling utilization, and expand lines with strong OEM pull.'
-        : 'Protect cash by trimming weak component batches and scaling only stable, high-yield production lines.'
-  };
-}
-
 function evolveProducts(
   current: ProductPerformance[],
   decision: CEODecision,
   crisis: CrisisReport,
   companyState: CompanyState
 ): ProductPerformance[] {
-  return current.map((product, idx) => {
+  return current.map((product) => {
     const demandPulse =
       companyState.product_demand * 0.35 +
       companyState.customer_sentiment * 0.24 -
       crisis.demand_drop_intensity * 0.2 -
       crisis.competitor_price_pressure * 0.15;
-    const strategicLift = decision.strategy_index * (0.006 + idx * 0.001);
-    const seasonal = Math.sin((Date.now() / 1000 / 60 / 60 / 24 + idx * 11) * 0.2) * 0.004;
+    const strategicLift = decision.strategy_index * 0.006;
+    const seasonal = Math.sin((Date.now() / 1000 / 60 / 60 / 24) * 0.2) * 0.004;
 
     const targetGrowthFactor = clamp(1 + demandPulse * 0.003 + strategicLift + seasonal, 0.992, 1.01);
     const appliedStep = 1 + (targetGrowthFactor - 1) * 0.18;
@@ -225,16 +147,14 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [selectedArchetype, setSelectedArchetype] = useState<Archetype>('VisionaryInnovator');
+  const selectedArchetype: Archetype = 'VisionaryInnovator';
   const [loading, setLoading] = useState(false);
   const [liveRunning, setLiveRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [companyState, setCompanyState] = useState<CompanyState>(INITIAL_COMPANY_STATE);
-  const [visionaryDecision, setVisionaryDecision] = useState<CEODecision | null>(null);
-  const [conservativeDecision, setConservativeDecision] = useState<CEODecision | null>(null);
-  const [visionaryCrisis, setVisionaryCrisis] = useState<CrisisReport | null>(null);
-  const [conservativeCrisis, setConservativeCrisis] = useState<CrisisReport | null>(null);
+  const [ceoDecision, setCeoDecision] = useState<CEODecision | null>(null);
+  const [crisis, setCrisis] = useState<CrisisReport | null>(null);
 
   const [timeline, setTimeline] = useState<ResultPoint[]>([]);
   const [history, setHistory] = useState<SimulationHistory[]>([]);
@@ -244,27 +164,10 @@ export default function App() {
   const [customerInsight, setCustomerInsight] = useState<CustomerDemandInsight>(initialInsight());
   const [revenueTimeline, setRevenueTimeline] = useState<CompanyRevenuePoint[]>([]);
   const [productTelemetry, setProductTelemetry] = useState<ProductTelemetryRecord[]>([]);
-  const [visionaryPlan, setVisionaryPlan] = useState<CEOProductPlan>({
-    archetype: 'VisionaryInnovator',
-    product_to_market: 'EV Battery Module',
-    product_to_scale: 'Laptop Motherboard',
-    product_to_reduce: 'Motor Drive Unit',
-    rationale: 'Demand-driven industrial growth plan.'
-  });
-  const [conservativePlan, setConservativePlan] = useState<CEOProductPlan>({
-    archetype: 'ConservativeStabilizer',
-    product_to_market: 'Power Control PCB',
-    product_to_scale: 'EV Battery Module',
-    product_to_reduce: 'Motor Drive Unit',
-    rationale: 'Efficiency-focused factory allocation plan.'
-  });
+  const [ceoCapital, setCeoCapital] = useState<number>(INITIAL_CEO_CAPITAL);
+  const [ceoPnlPercent, setCeoPnlPercent] = useState<number>(0);
 
-  const [visionaryCapital, setVisionaryCapital] = useState<number>(INITIAL_CEO_CAPITAL);
-  const [conservativeCapital, setConservativeCapital] = useState<number>(INITIAL_CEO_CAPITAL);
-  const [visionaryPnlPercent, setVisionaryPnlPercent] = useState<number>(0);
-  const [conservativePnlPercent, setConservativePnlPercent] = useState<number>(0);
-
-  const liveSessionIdsRef = useRef<{ visionary?: string; conservative?: string }>({});
+  const liveSessionIdRef = useRef<string | null>(null);
   const liveSocketsRef = useRef<WebSocket[]>([]);
 
   const appendLogs = useCallback((entries: string[]) => {
@@ -273,30 +176,20 @@ export default function App() {
   }, []);
 
   const applyQuarterUpdate = useCallback(
-    (archetype: Archetype, decision: CEODecision, crisis: CrisisReport, nextState: CompanyState, timestamp: string, quarter: number) => {
-      if (archetype === 'VisionaryInnovator') {
-        setVisionaryDecision(decision);
-        setVisionaryCrisis(crisis);
-        setVisionaryCapital((current) => {
-          const next = current * (1 + decision.strategy_index * 0.009 - decision.risk_level * 0.002);
-          setVisionaryPnlPercent(((next - INITIAL_CEO_CAPITAL) / INITIAL_CEO_CAPITAL) * 100);
-          return next;
-        });
-      } else {
-        setConservativeDecision(decision);
-        setConservativeCrisis(crisis);
-        setConservativeCapital((current) => {
-          const next = current * (1 + decision.strategy_index * 0.007 - decision.risk_level * 0.0014);
-          setConservativePnlPercent(((next - INITIAL_CEO_CAPITAL) / INITIAL_CEO_CAPITAL) * 100);
-          return next;
-        });
-      }
+    (decision: CEODecision, crisisReport: CrisisReport, nextState: CompanyState, timestamp: string, quarter: number) => {
+      setCeoDecision(decision);
+      setCrisis(crisisReport);
+      setCeoCapital((current) => {
+        const next = current * (1 + decision.strategy_index * 0.008 - decision.risk_level * 0.0018);
+        setCeoPnlPercent(((next - INITIAL_CEO_CAPITAL) / INITIAL_CEO_CAPITAL) * 100);
+        return next;
+      });
 
       setTimeline((current) => [
         ...current,
         {
           timestamp,
-          archetype,
+          archetype: selectedArchetype,
           strategy_index: decision.strategy_index,
           cash_reserves: nextState.cash_reserves,
           production_cost: nextState.production_cost,
@@ -306,12 +199,10 @@ export default function App() {
         }
       ]);
 
-      if (archetype === selectedArchetype) {
-        setCompanyState(nextState);
-      }
+      setCompanyState(nextState);
 
       setProducts((current) => {
-        const updated = evolveProducts(current, decision, crisis, nextState);
+        const updated = evolveProducts(current, decision, crisisReport, nextState);
         const totalUnits = Math.max(1, updated.reduce((sum, p) => sum + p.monthly_units_sold, 0));
         const points = updated.map((product) => {
           const productRevenue = decision.quarter_metrics.revenue * (product.monthly_units_sold / totalUnits);
@@ -329,22 +220,16 @@ export default function App() {
         void ingestProductTelemetry({
           timestamp,
           quarter,
-          archetype,
+          archetype: selectedArchetype,
           points
         }).catch(() => {
           // Keep simulation flow smooth if persistence has transient failures.
         });
         setProductTelemetry((existing) => [
-          ...points.map((point) => ({ ...point, timestamp, quarter, archetype })),
+          ...points.map((point) => ({ ...point, timestamp, quarter, archetype: selectedArchetype })),
           ...existing
         ].slice(0, 300));
 
-        setVisionaryPlan((plan) =>
-          archetype === 'VisionaryInnovator' ? derivePlan('VisionaryInnovator', decision, updated) : plan
-        );
-        setConservativePlan((plan) =>
-          archetype === 'ConservativeStabilizer' ? derivePlan('ConservativeStabilizer', decision, updated) : plan
-        );
         const topProduct = [...updated].sort((a, b) => b.monthly_units_sold - a.monthly_units_sold)[0];
         setCustomerInsight({
           top_reason: topProduct?.why_customers_buy ?? 'Price-performance balance',
@@ -413,42 +298,30 @@ export default function App() {
     try {
       const baseSeed = Date.now() % 100000;
 
-      const visionaryReq: SimulationRequest = {
-        archetype: 'VisionaryInnovator',
+      const request: SimulationRequest = {
+        archetype: selectedArchetype,
         company_state: companyState,
         seed: baseSeed
       };
-      const conservativeReq: SimulationRequest = {
-        archetype: 'ConservativeStabilizer',
-        company_state: companyState,
-        seed: baseSeed + 1
-      };
-
-      const [visionaryRes, conservativeRes]: [SimulationResponse, SimulationResponse] = await Promise.all([
-        simulate(visionaryReq),
-        simulate(conservativeReq)
-      ]);
-
-      const visionaryOutcome = inferOutcome(visionaryRes.ceo_decision);
-      const conservativeOutcome = inferOutcome(conservativeRes.ceo_decision);
-
-      await Promise.all([
-        simulate({ ...visionaryReq, ...visionaryOutcome }),
-        simulate({ ...conservativeReq, ...conservativeOutcome })
-      ]);
+      const response: SimulationResponse = await simulate(request);
+      const outcome = inferOutcome(response.ceo_decision);
+      await simulate({ ...request, ...outcome });
 
       const now = new Date().toISOString();
-      const nextStateFromVisionary = updateCompanyState(companyState, visionaryRes.ceo_decision);
-      applyQuarterUpdate('VisionaryInnovator', visionaryRes.ceo_decision, visionaryRes.crisis_report, nextStateFromVisionary, now, timeline.length + 1);
-      applyQuarterUpdate('ConservativeStabilizer', conservativeRes.ceo_decision, conservativeRes.crisis_report, updateCompanyState(companyState, conservativeRes.ceo_decision), now, timeline.length + 1);
+      applyQuarterUpdate(
+        response.ceo_decision,
+        response.crisis_report,
+        updateCompanyState(companyState, response.ceo_decision),
+        now,
+        timeline.length + 1
+      );
 
       appendLogs([
-        `[Crisis Agent] event=${visionaryRes.crisis_report.disruption_event}, severity=${visionaryRes.crisis_report.severity_index.toFixed(3)}.`,
-        `[CEO Agent] visionary production strategy=${visionaryRes.ceo_decision.strategy}.`,
-        `[CEO Agent] conservative production strategy=${conservativeRes.ceo_decision.strategy}.`,
-        `[Market Analysis Agent] demand_signal=${visionaryRes.ceo_decision.support_signals?.market_sentiment.momentum_signal.toFixed(3) ?? 'n/a'}.`,
-        `[Decision Engine Agent] execution_risk=${visionaryRes.ceo_decision.support_signals?.operations.execution_risk.toFixed(3) ?? 'n/a'}.`,
-        `[Reporting Agent] liquidity_health=${visionaryRes.ceo_decision.support_signals?.treasury.liquidity_health.toFixed(3) ?? 'n/a'}.`
+        `[Crisis Agent] event=${response.crisis_report.disruption_event}, severity=${response.crisis_report.severity_index.toFixed(3)}.`,
+        `[CEO Agent] production strategy=${response.ceo_decision.strategy}.`,
+        `[Market Analysis Agent] demand_signal=${response.ceo_decision.support_signals?.market_sentiment.momentum_signal.toFixed(3) ?? 'n/a'}.`,
+        `[Decision Engine Agent] execution_risk=${response.ceo_decision.support_signals?.operations.execution_risk.toFixed(3) ?? 'n/a'}.`,
+        `[Reporting Agent] liquidity_health=${response.ceo_decision.support_signals?.treasury.liquidity_health.toFixed(3) ?? 'n/a'}.`
       ]);
 
       await hydrateBackendData();
@@ -459,7 +332,7 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [appendLogs, applyQuarterUpdate, companyState, hydrateBackendData, navigate, timeline.length]);
+  }, [appendLogs, applyQuarterUpdate, companyState, hydrateBackendData, navigate, selectedArchetype, timeline.length]);
 
   const closeLiveSockets = useCallback(() => {
     for (const socket of liveSocketsRef.current) {
@@ -476,17 +349,15 @@ export default function App() {
     setLiveRunning(false);
     closeLiveSockets();
 
-    const { visionary, conservative } = liveSessionIdsRef.current;
-    liveSessionIdsRef.current = {};
-
-    const stops: Promise<void>[] = [];
-    if (visionary) stops.push(stopLiveSimulation(visionary));
-    if (conservative) stops.push(stopLiveSimulation(conservative));
-    if (stops.length > 0) await Promise.allSettled(stops);
+    const sessionId = liveSessionIdRef.current;
+    liveSessionIdRef.current = null;
+    if (sessionId) {
+      await Promise.allSettled([stopLiveSimulation(sessionId)]);
+    }
   }, [closeLiveSockets]);
 
   const wireLiveSocket = useCallback(
-    (sessionId: string, archetype: Archetype) => {
+    (sessionId: string) => {
       const socket = new WebSocket(getLiveWebsocketUrl(sessionId));
 
       socket.onmessage = (event: MessageEvent<string>) => {
@@ -500,16 +371,16 @@ export default function App() {
 
         const state = payload.company_state ?? payload.financial_state;
         if (payload.event === 'tick' && payload.decision && payload.crisis && state) {
-          applyQuarterUpdate(archetype, payload.decision, payload.crisis, state, payload.timestamp, payload.quarter);
+          applyQuarterUpdate(payload.decision, payload.crisis, state, payload.timestamp, payload.quarter);
         }
 
         if (payload.event === 'complete') {
-          appendLogs([`[Live Engine] ${archetype} session completed at quarter ${payload.quarter}.`]);
+          appendLogs([`[Live Engine] CEO session completed at quarter ${payload.quarter}.`]);
         }
       };
 
-      socket.onopen = () => appendLogs([`[Live Engine] ${archetype} websocket connected.`]);
-      socket.onerror = () => setError(`Live websocket error for ${archetype}.`);
+      socket.onopen = () => appendLogs(['[Live Engine] CEO websocket connected.']);
+      socket.onerror = () => setError('Live websocket error for CEO agent.');
       liveSocketsRef.current.push(socket);
     },
     [appendLogs, applyQuarterUpdate]
@@ -522,32 +393,18 @@ export default function App() {
       await stopLive();
       const baseSeed = Date.now() % 1_000_000;
 
-      const [visionary, conservative] = await Promise.all([
-        startLiveSimulation({
-          archetype: 'VisionaryInnovator',
-          company_state: companyState,
-          tick_seconds: 1.3,
-          max_quarters: 1800,
-          seed: baseSeed
-        }),
-        startLiveSimulation({
-          archetype: 'ConservativeStabilizer',
-          company_state: companyState,
-          tick_seconds: 1.3,
-          max_quarters: 1800,
-          seed: baseSeed + 7
-        })
-      ]);
+      const session = await startLiveSimulation({
+        archetype: selectedArchetype,
+        company_state: companyState,
+        tick_seconds: 1.3,
+        max_quarters: 1800,
+        seed: baseSeed
+      });
 
-      liveSessionIdsRef.current = { visionary: visionary.session_id, conservative: conservative.session_id };
+      liveSessionIdRef.current = session.session_id;
       setLiveRunning(true);
-      appendLogs([
-        `[Live Engine] Started Visionary session=${visionary.session_id}`,
-        `[Live Engine] Started Conservative session=${conservative.session_id}`
-      ]);
-
-      wireLiveSocket(visionary.session_id, 'VisionaryInnovator');
-      wireLiveSocket(conservative.session_id, 'ConservativeStabilizer');
+      appendLogs([`[Live Engine] Started CEO session=${session.session_id}`]);
+      wireLiveSocket(session.session_id);
       navigate('/simulation');
     } catch (apiError) {
       const err = apiError as ApiError;
@@ -556,7 +413,7 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [appendLogs, companyState, navigate, stopLive, wireLiveSocket]);
+  }, [appendLogs, companyState, navigate, selectedArchetype, stopLive, wireLiveSocket]);
 
   const handleReset = useCallback(async () => {
     setLoading(true);
@@ -564,10 +421,8 @@ export default function App() {
     try {
       await stopLive();
       await resetSimulation();
-      setVisionaryDecision(null);
-      setConservativeDecision(null);
-      setVisionaryCrisis(null);
-      setConservativeCrisis(null);
+      setCeoDecision(null);
+      setCrisis(null);
       setTimeline([]);
       setHistory([]);
       setAgentLogs([]);
@@ -576,10 +431,8 @@ export default function App() {
       setCustomerInsight(initialInsight());
       setRevenueTimeline([]);
       setProductTelemetry([]);
-      setVisionaryCapital(INITIAL_CEO_CAPITAL);
-      setConservativeCapital(INITIAL_CEO_CAPITAL);
-      setVisionaryPnlPercent(0);
-      setConservativePnlPercent(0);
+      setCeoCapital(INITIAL_CEO_CAPITAL);
+      setCeoPnlPercent(0);
       navigate('/');
     } catch (apiError) {
       const err = apiError as ApiError;
@@ -626,10 +479,8 @@ export default function App() {
               path="/"
               element={
                 <Dashboard
-                  selectedArchetype={selectedArchetype}
                   companyState={companyState}
                   loading={loading}
-                  onArchetypeChange={setSelectedArchetype}
                   onSimulate={runSimulation}
                   onReset={handleReset}
                 />
@@ -639,10 +490,8 @@ export default function App() {
               path="/simulation"
               element={
                 <Simulation
-                  visionaryDecision={visionaryDecision}
-                  conservativeDecision={conservativeDecision}
-                  visionaryCrisis={visionaryCrisis}
-                  conservativeCrisis={conservativeCrisis}
+                  ceoDecision={ceoDecision}
+                  crisis={crisis}
                   liveRunning={liveRunning}
                   agentLogs={agentLogs}
                   onStartLive={startLive}
@@ -650,14 +499,9 @@ export default function App() {
                   revenueTimeline={revenueTimeline}
                   products={products}
                   customerInsight={customerInsight}
-                  visionaryPlan={visionaryPlan}
-                  conservativePlan={conservativePlan}
-                  visionaryCapital={visionaryCapital}
-                  conservativeCapital={conservativeCapital}
-                  visionaryPnlPercent={visionaryPnlPercent}
-                  conservativePnlPercent={conservativePnlPercent}
-                  visionaryCashReserve={companyState.cash_reserves * 12_000_000 * 0.53}
-                  conservativeCashReserve={companyState.cash_reserves * 12_000_000 * 0.47}
+                  ceoCapital={ceoCapital}
+                  ceoPnlPercent={ceoPnlPercent}
+                  ceoCashReserve={companyState.cash_reserves * 12_000_000}
                   productTelemetry={productTelemetry}
                 />
               }
