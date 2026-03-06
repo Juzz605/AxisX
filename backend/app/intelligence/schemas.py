@@ -242,3 +242,41 @@ class LiveSimulationStartResponse(BaseModel):
     archetype: str
     tick_seconds: float
     max_quarters: int
+
+
+class ProductTelemetryPoint(BaseModel):
+    """Per-product performance point captured for pattern learning."""
+
+    product: str
+    monthly_units_sold: int = Field(..., ge=0)
+    yearly_units_sold: int = Field(..., ge=0)
+    inventory_utilization: float = Field(..., ge=0.0, le=1.0)
+    revenue: float = Field(..., ge=0.0)
+    unit_price: float = Field(..., ge=0.0)
+    top_color: str
+    reason: str
+
+
+class ProductTelemetryIngestRequest(BaseModel):
+    """Batch ingest request for product telemetry persistence."""
+
+    timestamp: datetime | None = None
+    quarter: int = Field(..., ge=1)
+    archetype: Literal["VisionaryInnovator", "ConservativeStabilizer"]
+    points: list[ProductTelemetryPoint] = Field(..., min_length=1)
+
+
+class ProductTelemetryRecord(BaseModel):
+    """Stored product telemetry record."""
+
+    timestamp: datetime
+    quarter: int = Field(..., ge=1)
+    archetype: str
+    product: str
+    monthly_units_sold: int = Field(..., ge=0)
+    yearly_units_sold: int = Field(..., ge=0)
+    inventory_utilization: float = Field(..., ge=0.0, le=1.0)
+    revenue: float = Field(..., ge=0.0)
+    unit_price: float = Field(..., ge=0.0)
+    top_color: str
+    reason: str

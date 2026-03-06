@@ -3,6 +3,8 @@ import type {
   ApiError,
   LiveSimulationStartRequest,
   LiveSimulationStartResponse,
+  ProductTelemetryRecord,
+  ProductTelemetryRequest,
   SimulationHistory,
   SimulationRequest,
   SimulationResponse
@@ -79,6 +81,23 @@ export async function startLiveSimulation(payload: LiveSimulationStartRequest): 
 export async function stopLiveSimulation(sessionId: string): Promise<void> {
   try {
     await client.post(`/simulate/live/stop/${sessionId}`);
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function ingestProductTelemetry(payload: ProductTelemetryRequest): Promise<void> {
+  try {
+    await client.post('/products/telemetry', payload);
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+export async function fetchProductTelemetry(limit = 240): Promise<ProductTelemetryRecord[]> {
+  try {
+    const response = await client.get<ProductTelemetryRecord[]>('/products/telemetry', { params: { limit } });
+    return response.data;
   } catch (error) {
     throw toApiError(error);
   }

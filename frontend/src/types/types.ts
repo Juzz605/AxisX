@@ -230,3 +230,27 @@ export interface CEOProductPlan {
   product_to_reduce: ProductPerformance['product'];
   rationale: string;
 }
+
+export interface ProductTelemetryPoint {
+  product: string;
+  monthly_units_sold: number;
+  yearly_units_sold: number;
+  inventory_utilization: number;
+  revenue: number;
+  unit_price: number;
+  top_color: string;
+  reason: string;
+}
+
+export interface ProductTelemetryRequest {
+  timestamp?: string;
+  quarter: number;
+  archetype: Archetype;
+  points: ProductTelemetryPoint[];
+}
+
+export interface ProductTelemetryRecord extends ProductTelemetryPoint {
+  timestamp: string;
+  quarter: number;
+  archetype: Archetype | string;
+}

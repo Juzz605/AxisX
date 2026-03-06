@@ -7,6 +7,7 @@ import type {
   CompanyRevenuePoint,
   CrisisReport,
   CustomerDemandInsight,
+  ProductTelemetryRecord,
   ProductPerformance
 } from '../types/types';
 
@@ -30,6 +31,7 @@ interface SimulationProps {
   conservativePnlPercent: number;
   visionaryCashReserve: number;
   conservativeCashReserve: number;
+  productTelemetry: ProductTelemetryRecord[];
 }
 
 export default function Simulation({
@@ -51,7 +53,8 @@ export default function Simulation({
   visionaryPnlPercent,
   conservativePnlPercent,
   visionaryCashReserve,
-  conservativeCashReserve
+  conservativeCashReserve,
+  productTelemetry
 }: SimulationProps) {
   return (
     <div className="space-y-5">
@@ -77,7 +80,7 @@ export default function Simulation({
         </div>
         <p className="mt-2 text-sm text-textSub">Parallel CEO response comparison under product-economy disruption dynamics.</p>
         <p className="mt-2 text-xs uppercase tracking-[0.14em] text-textSub">
-          Status: {liveRunning ? 'streaming synthetic market' : 'idle'}
+          Status: {liveRunning ? 'streaming live company quarters' : 'idle'}
         </p>
       </section>
 
@@ -113,6 +116,7 @@ export default function Simulation({
         visionaryPlan={visionaryPlan}
         conservativePlan={conservativePlan}
         cashReservePct={(visionaryCashReserve + conservativeCashReserve) / (12_000_000)}
+        telemetry={productTelemetry}
       />
 
       <section className="rounded-xl border border-border bg-panel p-5 shadow-glow">

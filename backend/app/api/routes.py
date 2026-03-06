@@ -1,5 +1,7 @@
 """FastAPI routes for AxisX core intelligence engine."""
 
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 
 from app.core.config import CONFIG
@@ -9,16 +11,20 @@ from app.intelligence.schemas import (
     LiveSimulationStartRequest,
     LiveSimulationStartResponse,
     MemoryRecord,
+    ProductTelemetryIngestRequest,
+    ProductTelemetryRecord,
     SimulationResponse,
     SimulationRequest,
     TimelineSimulationRequest,
     TimelineSimulationResponse,
 )
 from app.intelligence.timeline_store import TimelineStoreProtocol
+from app.intelligence.product_telemetry_store import ProductTelemetryStoreProtocol
 from app.services.dependencies import (
     get_live_simulation_manager,
     get_memory_engine,
     get_orchestrator,
+    get_product_telemetry_store,
     get_timeline_store,
 )
 from app.services.live_simulation import LiveSimulationManager
@@ -163,13 +169,53 @@ def history(memory_engine: ExecutiveMemoryEngine = Depends(get_memory_engine)) -
     return memory_engine.records
 
 
+@router.post("/products/telemetry")
+def ingest_product_telemetry(
+    payload: ProductTelemetryIngestRequest,
+    telemetry_store: ProductTelemetryStoreProtocol = Depends(get_product_telemetry_store),
+) -> dict[str, int]:
+    """Persist per-product sales and revenue records for pattern learning."""
+
+    timestamp = payload.timestamp or datetime.utcnow()
+    records = [
+        ProductTelemetryRecord(
+            timestamp=timestamp,
+            quarter=payload.quarter,
+            archetype=payload.archetype,
+            product=point.product,
+            monthly_units_sold=point.monthly_units_sold,
+            yearly_units_sold=point.yearly_units_sold,
+            inventory_utilization=point.inventory_utilization,
+            revenue=point.revenue,
+            unit_price=point.unit_price,
+            top_color=point.top_color,
+            reason=point.reason,
+        )
+        for point in payload.points
+    ]
+    telemetry_store.save_many(records)
+    return {"saved": len(records)}
+
+
+@router.get("/products/telemetry", response_model=list[ProductTelemetryRecord])
+def get_product_telemetry(
+    limit: int = 240,
+    telemetry_store: ProductTelemetryStoreProtocol = Depends(get_product_telemetry_store),
+) -> list[ProductTelemetryRecord]:
+    """Return latest product telemetry records."""
+
+    return telemetry_store.list_recent(limit=limit)
+
+
 @router.post("/reset")
 def reset(
     memory_engine: ExecutiveMemoryEngine = Depends(get_memory_engine),
     timeline_store: TimelineStoreProtocol = Depends(get_timeline_store),
+    telemetry_store: ProductTelemetryStoreProtocol = Depends(get_product_telemetry_store),
 ) -> dict[str, str]:
     """Reset all simulation memory and timeline records."""
 
     memory_engine.clear()
     timeline_store.clear()
+    telemetry_store.clear()
     return {"status": "reset_complete"}

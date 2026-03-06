@@ -6,9 +6,11 @@ import Dashboard from './pages/Dashboard';
 import Simulation from './pages/Simulation';
 import Analytics from './pages/Analytics';
 import {
+  fetchProductTelemetry,
   fetchHistory,
   fetchResults,
   getLiveWebsocketUrl,
+  ingestProductTelemetry,
   resetSimulation,
   simulate,
   startLiveSimulation,
@@ -24,6 +26,7 @@ import type {
   CrisisReport,
   CustomerDemandInsight,
   LiveTickEvent,
+  ProductTelemetryRecord,
   ProductPerformance,
   ResultPoint,
   SimulationHistory,
@@ -42,7 +45,6 @@ const INITIAL_COMPANY_STATE: CompanyState = {
 };
 
 const INITIAL_CEO_CAPITAL = 50_000_000;
-const PRODUCT_NAMES: ProductPerformance['product'][] = ['iPhone', 'AirPods', 'iPad', 'iMac', 'MacBook Air', 'Apple Watch'];
 
 function clamp(value: number, min = 0, max = 1): number {
   return Math.max(min, Math.min(max, value));
@@ -79,9 +81,9 @@ function initialProducts(): ProductPerformance[] {
   return [
     {
       product: 'iPhone',
-      monthly_units_sold: 5_200_000,
-      yearly_units_sold: 62_000_000,
-      inventory_utilization: 0.78,
+      monthly_units_sold: 6800,
+      yearly_units_sold: 7400,
+      inventory_utilization: 0.62,
       production_focus: 'increase',
       primary_color: 'Midnight',
       color_mix: { Midnight: 34, Starlight: 22, Blue: 17, Red: 12, Pink: 15 },
@@ -90,9 +92,9 @@ function initialProducts(): ProductPerformance[] {
     },
     {
       product: 'AirPods',
-      monthly_units_sold: 3_100_000,
-      yearly_units_sold: 36_000_000,
-      inventory_utilization: 0.72,
+      monthly_units_sold: 4900,
+      yearly_units_sold: 5300,
+      inventory_utilization: 0.59,
       production_focus: 'hold',
       primary_color: 'White',
       color_mix: { White: 84, Black: 8, Green: 4, Purple: 4 },
@@ -101,9 +103,9 @@ function initialProducts(): ProductPerformance[] {
     },
     {
       product: 'iPad',
-      monthly_units_sold: 1_900_000,
-      yearly_units_sold: 22_000_000,
-      inventory_utilization: 0.66,
+      monthly_units_sold: 3400,
+      yearly_units_sold: 3900,
+      inventory_utilization: 0.55,
       production_focus: 'hold',
       primary_color: 'Silver',
       color_mix: { Silver: 35, SpaceGray: 40, Blue: 15, Purple: 10 },
@@ -112,9 +114,9 @@ function initialProducts(): ProductPerformance[] {
     },
     {
       product: 'iMac',
-      monthly_units_sold: 420_000,
-      yearly_units_sold: 5_000_000,
-      inventory_utilization: 0.58,
+      monthly_units_sold: 1400,
+      yearly_units_sold: 1700,
+      inventory_utilization: 0.49,
       production_focus: 'reduce',
       primary_color: 'Blue',
       color_mix: { Blue: 31, Green: 18, Pink: 15, Silver: 24, Yellow: 12 },
@@ -123,9 +125,9 @@ function initialProducts(): ProductPerformance[] {
     },
     {
       product: 'MacBook Air',
-      monthly_units_sold: 1_700_000,
-      yearly_units_sold: 20_000_000,
-      inventory_utilization: 0.71,
+      monthly_units_sold: 4300,
+      yearly_units_sold: 5100,
+      inventory_utilization: 0.58,
       production_focus: 'increase',
       primary_color: 'Space Gray',
       color_mix: { SpaceGray: 38, Silver: 29, Midnight: 23, Starlight: 10 },
@@ -134,9 +136,9 @@ function initialProducts(): ProductPerformance[] {
     },
     {
       product: 'Apple Watch',
-      monthly_units_sold: 1_350_000,
-      yearly_units_sold: 16_000_000,
-      inventory_utilization: 0.64,
+      monthly_units_sold: 2800,
+      yearly_units_sold: 3200,
+      inventory_utilization: 0.53,
       production_focus: 'hold',
       primary_color: 'Black',
       color_mix: { Black: 44, Silver: 24, Blue: 14, Red: 8, Pink: 10 },
@@ -185,17 +187,29 @@ function evolveProducts(
   companyState: CompanyState
 ): ProductPerformance[] {
   return current.map((product, idx) => {
-    const demandPulse = companyState.product_demand * 0.9 + companyState.customer_sentiment * 0.5 - crisis.demand_drop_intensity * 0.4;
-    const strategicLift = decision.strategy_index * (0.08 + idx * 0.006);
-    const seasonal = Math.sin((Date.now() / 1000 / 60 / 60 / 24 + idx * 11) * 0.2) * 0.06;
-    const growthFactor = 1 + demandPulse * 0.05 + strategicLift + seasonal;
+    const demandPulse =
+      companyState.product_demand * 0.35 +
+      companyState.customer_sentiment * 0.24 -
+      crisis.demand_drop_intensity * 0.2 -
+      crisis.competitor_price_pressure * 0.15;
+    const strategicLift = decision.strategy_index * (0.006 + idx * 0.001);
+    const seasonal = Math.sin((Date.now() / 1000 / 60 / 60 / 24 + idx * 11) * 0.2) * 0.004;
 
-    const monthly = Math.max(50_000, Math.round(product.monthly_units_sold * growthFactor));
-    const yearly = Math.max(monthly * 8, Math.round(product.yearly_units_sold * (1 + growthFactor * 0.08)));
-    const utilization = clamp(product.inventory_utilization + growthFactor * 0.03 - companyState.production_cost * 0.02, 0.35, 0.95);
+    const targetGrowthFactor = clamp(1 + demandPulse * 0.003 + strategicLift + seasonal, 0.992, 1.01);
+    const appliedStep = 1 + (targetGrowthFactor - 1) * 0.18;
+
+    const monthlyRaw = Math.round(product.monthly_units_sold * appliedStep);
+    const monthly = Math.max(1000, Math.min(10_000, monthlyRaw));
+    const yearlyTarget = Math.round(monthly * 1.06);
+    const yearly = Math.max(1000, Math.min(10_000, Math.round(product.yearly_units_sold * 0.9 + yearlyTarget * 0.1)));
+    const utilization = clamp(
+      product.inventory_utilization + (appliedStep - 1) * 0.14 - companyState.production_cost * 0.006,
+      0.35,
+      0.95
+    );
 
     const production_focus: ProductPerformance['production_focus'] =
-      growthFactor > 1.05 ? 'increase' : growthFactor < 0.96 ? 'reduce' : 'hold';
+      appliedStep > 1.004 ? 'increase' : appliedStep < 0.996 ? 'reduce' : 'hold';
 
     return {
       ...product,
@@ -229,6 +243,7 @@ export default function App() {
   const [products, setProducts] = useState<ProductPerformance[]>(initialProducts());
   const [customerInsight, setCustomerInsight] = useState<CustomerDemandInsight>(initialInsight());
   const [revenueTimeline, setRevenueTimeline] = useState<CompanyRevenuePoint[]>([]);
+  const [productTelemetry, setProductTelemetry] = useState<ProductTelemetryRecord[]>([]);
   const [visionaryPlan, setVisionaryPlan] = useState<CEOProductPlan>({
     archetype: 'VisionaryInnovator',
     product_to_market: 'iPhone',
@@ -297,12 +312,50 @@ export default function App() {
 
       setProducts((current) => {
         const updated = evolveProducts(current, decision, crisis, nextState);
+        const totalUnits = Math.max(1, updated.reduce((sum, p) => sum + p.monthly_units_sold, 0));
+        const points = updated.map((product) => {
+          const productRevenue = decision.quarter_metrics.revenue * (product.monthly_units_sold / totalUnits);
+          return {
+            product: product.product,
+            monthly_units_sold: product.monthly_units_sold,
+            yearly_units_sold: product.yearly_units_sold,
+            inventory_utilization: product.inventory_utilization,
+            revenue: Number(productRevenue.toFixed(2)),
+            unit_price: Number((productRevenue / Math.max(1, product.monthly_units_sold)).toFixed(2)),
+            top_color: product.primary_color,
+            reason: product.why_customers_buy
+          };
+        });
+        void ingestProductTelemetry({
+          timestamp,
+          quarter,
+          archetype,
+          points
+        }).catch(() => {
+          // Keep simulation flow smooth if persistence has transient failures.
+        });
+        setProductTelemetry((existing) => [
+          ...points.map((point) => ({ ...point, timestamp, quarter, archetype })),
+          ...existing
+        ].slice(0, 300));
+
         setVisionaryPlan((plan) =>
           archetype === 'VisionaryInnovator' ? derivePlan('VisionaryInnovator', decision, updated) : plan
         );
         setConservativePlan((plan) =>
           archetype === 'ConservativeStabilizer' ? derivePlan('ConservativeStabilizer', decision, updated) : plan
         );
+        const topProduct = [...updated].sort((a, b) => b.monthly_units_sold - a.monthly_units_sold)[0];
+        setCustomerInsight({
+          top_reason: topProduct?.why_customers_buy ?? 'Price-performance balance',
+          top_segment: nextState.product_demand > 0.62 ? 'Students + creators' : 'Mainstream family buyers',
+          top_region: nextState.marketing_effectiveness > 0.6 ? 'India metros + US urban hubs' : 'Mixed global urban cluster',
+          top_color_preference: topProduct?.primary_color ?? 'Midnight',
+          seasonal_driver:
+            nextState.product_demand > 0.64
+              ? 'Back-to-school demand and flagship cycle'
+              : 'Holiday gifting and replacement purchases'
+        });
         return updated;
       });
 
@@ -321,24 +374,19 @@ export default function App() {
         ].slice(-24);
       });
 
-      setCustomerInsight({
-        top_reason: nextState.customer_sentiment > 0.62 ? 'Perceived premium value and ecosystem trust' : 'Price-performance balance',
-        top_segment: nextState.product_demand > 0.62 ? 'Students + creators' : 'Mainstream family buyers',
-        top_region: nextState.marketing_effectiveness > 0.6 ? 'India metros + US urban hubs' : 'Mixed global urban cluster',
-        top_color_preference: products[0]?.primary_color ?? 'Midnight',
-        seasonal_driver:
-          nextState.product_demand > 0.64
-            ? 'Back-to-school demand and flagship cycle'
-            : 'Holiday gifting and replacement purchases'
-      });
     },
-    [products, selectedArchetype]
+    [selectedArchetype]
   );
 
   const hydrateBackendData = useCallback(async () => {
     try {
-      const [resultRows, historyRows] = await Promise.all([fetchResults(), fetchHistory()]);
+      const [resultRows, historyRows, telemetryRows] = await Promise.all([
+        fetchResults(),
+        fetchHistory(),
+        fetchProductTelemetry(240)
+      ]);
       setHistory(historyRows);
+      setProductTelemetry(telemetryRows);
 
       if (resultRows.length > 0 && timeline.length === 0) {
         const points = resultRows.map((result, index) => ({
@@ -478,15 +526,15 @@ export default function App() {
         startLiveSimulation({
           archetype: 'VisionaryInnovator',
           company_state: companyState,
-          tick_seconds: 1.2,
-          max_quarters: 36,
+          tick_seconds: 1.3,
+          max_quarters: 1800,
           seed: baseSeed
         }),
         startLiveSimulation({
           archetype: 'ConservativeStabilizer',
           company_state: companyState,
-          tick_seconds: 1.2,
-          max_quarters: 36,
+          tick_seconds: 1.3,
+          max_quarters: 1800,
           seed: baseSeed + 7
         })
       ]);
@@ -527,6 +575,7 @@ export default function App() {
       setProducts(initialProducts());
       setCustomerInsight(initialInsight());
       setRevenueTimeline([]);
+      setProductTelemetry([]);
       setVisionaryCapital(INITIAL_CEO_CAPITAL);
       setConservativeCapital(INITIAL_CEO_CAPITAL);
       setVisionaryPnlPercent(0);
@@ -609,6 +658,7 @@ export default function App() {
                   conservativePnlPercent={conservativePnlPercent}
                   visionaryCashReserve={companyState.cash_reserves * 12_000_000 * 0.53}
                   conservativeCashReserve={companyState.cash_reserves * 12_000_000 * 0.47}
+                  productTelemetry={productTelemetry}
                 />
               }
             />

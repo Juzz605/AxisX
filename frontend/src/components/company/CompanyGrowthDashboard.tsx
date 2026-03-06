@@ -1,4 +1,10 @@
-import type { CEOProductPlan, CompanyRevenuePoint, CustomerDemandInsight, ProductPerformance } from '../../types/types';
+import type {
+  CEOProductPlan,
+  CompanyRevenuePoint,
+  CustomerDemandInsight,
+  ProductPerformance,
+  ProductTelemetryRecord
+} from '../../types/types';
 import RevenueGrowthChart from './RevenueGrowthChart';
 
 interface CompanyGrowthDashboardProps {
@@ -8,6 +14,7 @@ interface CompanyGrowthDashboardProps {
   visionaryPlan: CEOProductPlan;
   conservativePlan: CEOProductPlan;
   cashReservePct: number;
+  telemetry: ProductTelemetryRecord[];
 }
 
 function Kpi({ label, value }: { label: string; value: string }) {
@@ -46,7 +53,7 @@ function ProductCard({ product }: { product: ProductPerformance }) {
           <p className="mt-1 font-semibold">{product.monthly_units_sold.toLocaleString()}</p>
         </div>
         <div className="rounded border border-border bg-bg px-2 py-1.5">
-          <p className="text-textSub">Yearly Sold</p>
+          <p className="text-textSub">YTD Sold</p>
           <p className="mt-1 font-semibold">{product.yearly_units_sold.toLocaleString()}</p>
         </div>
       </div>
@@ -75,10 +82,14 @@ export default function CompanyGrowthDashboard({
   insight,
   visionaryPlan,
   conservativePlan,
-  cashReservePct
+  cashReservePct,
+  telemetry
 }: CompanyGrowthDashboardProps) {
   const latest = revenueTimeline[revenueTimeline.length - 1];
   const annualized = latest ? latest.revenue * 4 : 0;
+  const topProduct = [...products].sort((a, b) => b.monthly_units_sold - a.monthly_units_sold)[0];
+  const recentTelemetry = telemetry.slice(0, 8);
+  const telemetryRevenue = recentTelemetry.reduce((sum, row) => sum + row.revenue, 0);
 
   return (
     <section className="space-y-4 rounded-xl border border-border bg-panel p-5 shadow-glow">
@@ -95,6 +106,20 @@ export default function CompanyGrowthDashboard({
         <Kpi label="QoQ Growth" value={latest ? `${(latest.growth_rate * 100).toFixed(2)}%` : 'n/a'} />
         <Kpi label="Annualized Revenue" value={latest ? `$${annualized.toLocaleString()}` : 'n/a'} />
         <Kpi label="Cash Reserve" value={`${Math.round(cashReservePct * 100)}%`} />
+      </div>
+
+      <div className="rounded-lg border border-border bg-panel2 p-3">
+        <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-textSub">Current Top Seller</h4>
+        {topProduct ? (
+          <div className="mt-2 grid gap-2 md:grid-cols-4">
+            <Kpi label="Product" value={topProduct.product} />
+            <Kpi label="Units Sold" value={topProduct.monthly_units_sold.toLocaleString()} />
+            <Kpi label="Top Color" value={topProduct.primary_color} />
+            <Kpi label="Reason" value={topProduct.why_customers_buy} />
+          </div>
+        ) : (
+          <p className="mt-2 text-xs text-textSub">No product data yet.</p>
+        )}
       </div>
 
       <div className="rounded-lg border border-border bg-[#0B1220] p-3">
@@ -123,6 +148,26 @@ export default function CompanyGrowthDashboard({
           <div className="grid gap-2 md:grid-cols-2">
             <PlanCard title="Visionary CEO Plan" plan={visionaryPlan} />
             <PlanCard title="Conservative CEO Plan" plan={conservativePlan} />
+          </div>
+
+          <div className="rounded-lg border border-border bg-panel2 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-textSub">Saved Product Pattern (MongoDB)</h4>
+              <span className="text-xs text-textSub">${Math.round(telemetryRevenue).toLocaleString()} tracked</span>
+            </div>
+            <div className="mt-2 max-h-40 space-y-1 overflow-y-auto">
+              {recentTelemetry.length === 0 ? (
+                <p className="text-xs text-textSub">No persisted product telemetry yet.</p>
+              ) : (
+                recentTelemetry.map((row, idx) => (
+                  <div key={`${row.timestamp}-${row.product}-${idx}`} className="rounded border border-border bg-bg px-2 py-1.5 text-xs">
+                    <span className="font-semibold text-textMain">{row.product}</span>
+                    <span className="text-textSub"> • {row.monthly_units_sold.toLocaleString()} units • </span>
+                    <span className="text-textMain">${Math.round(row.revenue).toLocaleString()}</span>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

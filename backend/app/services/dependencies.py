@@ -10,6 +10,11 @@ from app.intelligence.memory_engine import ExecutiveMemoryEngine
 from app.intelligence.orchestrator import AxisXIntelligenceOrchestrator
 from app.intelligence.persistence import SQLMemoryStore
 from app.intelligence.persistence_mongo import MongoMemoryStore
+from app.intelligence.product_telemetry_store import (
+    InMemoryProductTelemetryStore,
+    ProductTelemetryStoreProtocol,
+)
+from app.intelligence.product_telemetry_store_mongo import MongoProductTelemetryStore
 from app.intelligence.timeline_store import TimelineStore, TimelineStoreProtocol
 from app.intelligence.timeline_store_mongo import MongoTimelineStore
 from app.intelligence.timeline_store_postgres import PostgresTimelineStore
@@ -69,3 +74,14 @@ def get_live_simulation_manager() -> LiveSimulationManager:
     """Return singleton live simulation manager."""
 
     return LiveSimulationManager(orchestrator=get_orchestrator())
+
+
+@lru_cache(maxsize=1)
+def get_product_telemetry_store() -> ProductTelemetryStoreProtocol:
+    """Return telemetry store for product sales/revenue records."""
+
+    if CONFIG.mongodb_uri:
+        client = _get_mongo_client()
+        db = client[CONFIG.mongodb_db_name]
+        return MongoProductTelemetryStore(collection=db["product_telemetry"])
+    return InMemoryProductTelemetryStore()
