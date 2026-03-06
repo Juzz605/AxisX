@@ -23,8 +23,28 @@ const client = axios.create({
 function toApiError(error: unknown): ApiError {
   if (axios.isAxiosError(error)) {
     const axiosErr = error as AxiosError<{ detail?: string }>;
+    const detail = axiosErr.response?.data?.detail as unknown;
+    let message = axiosErr.message;
+
+    if (typeof detail === 'string') {
+      message = detail;
+    } else if (Array.isArray(detail)) {
+      const joined = detail
+        .map((item) => {
+          if (typeof item === 'string') return item;
+          if (item && typeof item === 'object' && 'msg' in item) {
+            return String((item as { msg?: unknown }).msg ?? 'Validation error');
+          }
+          return 'Validation error';
+        })
+        .join('; ');
+      message = joined || message;
+    } else if (detail && typeof detail === 'object') {
+      message = JSON.stringify(detail);
+    }
+
     return {
-      message: axiosErr.response?.data?.detail ?? axiosErr.message,
+      message,
       status: axiosErr.response?.status
     };
   }

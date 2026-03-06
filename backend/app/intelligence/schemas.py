@@ -231,7 +231,7 @@ class LiveSimulationStartRequest(BaseModel):
         serialization_alias="company_state",
     )
     tick_seconds: float = Field(default=1.5, ge=0.4, le=10.0)
-    max_quarters: int = Field(default=24, ge=1, le=120)
+    max_quarters: int = Field(default=24, ge=1, le=5000)
     seed: int | None = None
 
 
