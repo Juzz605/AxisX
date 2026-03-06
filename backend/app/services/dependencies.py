@@ -15,6 +15,7 @@ from app.intelligence.product_telemetry_store import (
     ProductTelemetryStoreProtocol,
 )
 from app.intelligence.product_telemetry_store_mongo import MongoProductTelemetryStore
+from app.intelligence.product_telemetry_store_postgres import PostgresProductTelemetryStore
 from app.intelligence.timeline_store import TimelineStore, TimelineStoreProtocol
 from app.intelligence.timeline_store_mongo import MongoTimelineStore
 from app.intelligence.timeline_store_postgres import PostgresTimelineStore
@@ -84,4 +85,6 @@ def get_product_telemetry_store() -> ProductTelemetryStoreProtocol:
         client = _get_mongo_client()
         db = client[CONFIG.mongodb_db_name]
         return MongoProductTelemetryStore(collection=db["product_telemetry"])
+    if CONFIG.database_url:
+        return PostgresProductTelemetryStore(connection_factory=_postgres_connection_factory)
     return InMemoryProductTelemetryStore()
